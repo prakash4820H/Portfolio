@@ -166,4 +166,21 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof THREE !== "undefined" && document.getElementById("3d-container")) {
     init3DScene();
   }
+
+  // Scroll Progress Indicator
+  const scrollProgress = document.querySelector(".scroll-progress-bar");
+
+  function updateScrollProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight =
+      document.documentElement.scrollHeight - window.innerHeight;
+    const scrollPercentage = (scrollTop / docHeight) * 100;
+    scrollProgress.style.width = scrollPercentage + "%";
+  }
+
+  // Initial update
+  updateScrollProgress();
+
+  // Update on scroll
+  window.addEventListener("scroll", updateScrollProgress);
 });
