@@ -42,8 +42,68 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1000);
   });
 
+  // Function to ensure navigation elements are clickable
+  function ensureClickableElements() {
+    const navLinks = document.querySelectorAll(".nav-links a");
+    const logo = document.querySelector(".logo");
+    const hamburger = document.querySelector(".hamburger");
+
+    // Make sure all nav elements are clickable
+    [logo, hamburger, ...navLinks].forEach((el) => {
+      if (el) {
+        el.style.pointerEvents = "auto";
+        el.style.cursor = "pointer";
+        // Force link to be on top
+        el.style.position = "relative";
+        el.style.zIndex = "2000";
+      }
+    });
+  }
+
+  // Run this on page load and periodically
+  ensureClickableElements();
+  // Run this check every second to ensure links remain clickable
+  setInterval(ensureClickableElements, 1000);
+
   // Navigation scroll effect
-  const nav = document.querySelector("nav");
+  const nav = document.getElementById("main-nav");
+  const sections = document.querySelectorAll("section[id]");
+  const navLinks = document.querySelectorAll(".nav-links a");
+
+  // Function to highlight active nav item
+  function updateActiveNavLink() {
+    // Get current scroll position with a buffer for better UX
+    let scrollPosition = window.scrollY + 200;
+
+    // Find the section that is currently in view
+    sections.forEach((section) => {
+      const sectionTop = section.offsetTop;
+      const sectionHeight = section.offsetHeight;
+      const sectionId = section.getAttribute("id");
+
+      // Check if scroll position is within the section
+      if (
+        scrollPosition >= sectionTop &&
+        scrollPosition < sectionTop + sectionHeight
+      ) {
+        // Remove active class from all links
+        navLinks.forEach((link) => link.classList.remove("active"));
+
+        // Add active class to the corresponding link
+        const activeLink = document.querySelector(
+          `.nav-links a[href="#${sectionId}"]`
+        );
+        if (activeLink) {
+          activeLink.classList.add("active");
+        }
+      }
+    });
+
+    // Special case for the top of the page
+    if (window.scrollY < 100) {
+      navLinks.forEach((link) => link.classList.remove("active"));
+    }
+  }
 
   window.addEventListener("scroll", () => {
     if (window.scrollY > 50) {
@@ -55,21 +115,30 @@ document.addEventListener("DOMContentLoaded", () => {
       nav.classList.remove("nav-scrolled");
       document.querySelector(".logo").style.color = "white";
     }
+
+    // Update active nav link on scroll
+    updateActiveNavLink();
+
+    // Re-ensure clickability on scroll
+    ensureClickableElements();
   });
+
+  // Initial call to set active link on page load
+  updateActiveNavLink();
 
   // Mobile menu toggle
   const hamburger = document.querySelector(".hamburger");
-  const navLinks = document.querySelector(".nav-links");
+  const navLinksContainer = document.querySelector(".nav-links");
 
   hamburger.addEventListener("click", () => {
-    navLinks.classList.toggle("nav-active");
+    navLinksContainer.classList.toggle("nav-active");
     hamburger.classList.toggle("hamburger-active");
   });
 
   // Close mobile menu when clicking on a link
   document.querySelectorAll(".nav-links a").forEach((link) => {
     link.addEventListener("click", () => {
-      navLinks.classList.remove("nav-active");
+      navLinksContainer.classList.remove("nav-active");
       hamburger.classList.remove("hamburger-active");
     });
   });
@@ -93,21 +162,58 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Smooth scrolling for navigation links
-  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+  // Logo click - scroll to top
+  const logo = document.querySelector(".logo");
+  if (logo) {
+    logo.addEventListener("click", () => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+  }
+
+  // Smooth scrolling for navigation links with debugging
+  document.querySelectorAll(".nav-links a").forEach((anchor) => {
+    // Add a visible click indicator class
+    anchor.classList.add("nav-link-active");
+
+    // Add the click event listener
     anchor.addEventListener("click", function (e) {
+      console.log("Nav link clicked:", this.getAttribute("href"));
       e.preventDefault();
 
-      const target = document.querySelector(this.getAttribute("href"));
+      const targetId = this.getAttribute("href");
+      const target = document.querySelector(targetId);
 
       if (target) {
+        // Get the height of the navigation
+        const navHeight = nav.offsetHeight;
+
+        // Calculate the position to scroll to
+        const targetPosition = target.offsetTop - navHeight - 10; // 10px buffer
+
+        console.log("Scrolling to position:", targetPosition);
         window.scrollTo({
-          top: target.offsetTop - 80,
+          top: targetPosition,
           behavior: "smooth",
         });
+      } else {
+        console.log("Target not found:", targetId);
       }
     });
   });
+
+  // Manually add link click functions to ensure they work
+  document.querySelector('.nav-links a[href="#about"]').onclick = function (e) {
+    e.preventDefault();
+    const target = document.querySelector("#about");
+    const navHeight = nav.offsetHeight;
+    window.scrollTo({
+      top: target.offsetTop - navHeight - 10,
+      behavior: "smooth",
+    });
+  };
 
   // Animate elements on scroll
   const animateOnScroll = () => {
