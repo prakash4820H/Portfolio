@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jaya Prakash Pinninti's Portfolio QR Code</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+      }
+      h1 {
+        color: #2563eb;
+      }
+      .qr-container {
+        margin: 20px auto;
+        width: 300px;
+        height: 300px;
+      }
+      .qr-container img {
+        width: 100%;
+        height: 100%;
+      }
+      .instructions {
+        text-align: left;
+        color: #666;
+        margin: 30px auto;
+        max-width: 500px;
+      }
+      .portfolio-link {
+        font-weight: bold;
+        color: #2563eb;
+        text-decoration: underline;
+      }
+      @media print {
+        body {
+          padding: 0;
+          margin: 0;
+          font-size: 12pt;
+        }
+        .no-print {
+          display: none;
+        }
+        .qr-container {
+          margin: 15px auto;
+        }
+        .print-only {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Jaya Prakash Pinninti's Portfolio</h1>
+    <p>Scan this QR code to visit my online portfolio:</p>
+
+    <div class="qr-container">
+      <img src="portfolio-qr.png" alt="QR Code to Portfolio" />
+    </div>
+
+    <p>
+      Link:
+      <span class="portfolio-link"
+        >https://prakash4820h.github.io/Portfolio/</span
+      >
+    </p>
+
+    <div class="instructions">
+      <h3>How to use this QR code:</h3>
+      <ol>
+        <li>Print this page</li>
+        <li>Add it as the last page of your physical resume</li>
+        <li>Interviewers can easily scan it to see your full portfolio</li>
+      </ol>
+    </div>
+
+    <div
+      class="no-print"
+      style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px"
+    >
+      <button onclick="window.print()">Print This Page</button>
+    </div>
+  </body>
+</html>

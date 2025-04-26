@@ -28,19 +28,31 @@
       h1 {
         color: #2563eb;
       }
+      .qr-image {
+        width: 250px;
+        height: 250px;
+      }
     </style>
+    <script>
+      // Function to check if an image loaded successfully
+      function handleImageError(img) {
+        console.log("QR code image failed to load, using local fallback");
+        img.onerror = null; // Prevent infinite loop
+        img.src = "portfolio-qr.png"; // Use local file as fallback
+      }
+    </script>
   </head>
   <body>
     <h1>Jaya Prakash Pinninti's Portfolio</h1>
     <p>Scan this QR code to visit my online portfolio:</p>
 
     <div class="qr-container">
-      <!-- QR Code generated from https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=https://prakash4820h.github.io/Portfolio/ -->
+      <!-- Using a more reliable QR code API with local fallback -->
       <img
-        src="https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=https://prakash4820h.github.io/Portfolio/"
+        class="qr-image"
+        src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://prakash4820h.github.io/Portfolio/&color=2563eb&bgcolor=FFFFFF"
         alt="QR Code to Portfolio"
-        width="250"
-        height="250"
+        onerror="handleImageError(this)"
       />
     </div>
 
