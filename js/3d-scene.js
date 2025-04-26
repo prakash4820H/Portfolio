@@ -3,11 +3,16 @@ let scene, camera, renderer, cube;
 let targetRotation = { x: 0, y: 0 };
 let mouseDown = false;
 let lastMousePosition = { x: 0, y: 0 };
+let scrollY = 0;
+let windowHeight = 0;
 
 function init3DScene() {
   // Create scene container
   const container = document.getElementById("3d-container");
-  if (!container) return;
+  if (!container) {
+    console.error("3D container not found");
+    return;
+  }
 
   // Set up scene
   scene = new THREE.Scene();
@@ -15,15 +20,20 @@ function init3DScene() {
   // Set up camera
   camera = new THREE.PerspectiveCamera(
     75,
-    container.clientWidth / container.clientHeight,
+    window.innerWidth / window.innerHeight,
     0.1,
     1000
   );
   camera.position.z = 5;
 
-  // Set up renderer
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
+  // Set up renderer with better quality settings
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    powerPreference: "high-performance",
+  });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x000000, 0); // Transparent background
   container.appendChild(renderer.domElement);
 
@@ -36,6 +46,11 @@ function init3DScene() {
   directionalLight.position.set(5, 3, 5);
   scene.add(directionalLight);
 
+  // Add point light for more dynamic lighting
+  const pointLight = new THREE.PointLight(0x2563eb, 1, 10);
+  pointLight.position.set(-2, 1, 3);
+  scene.add(pointLight);
+
   // Create geometry - use dodecahedron for more interesting shape
   const geometry = new THREE.DodecahedronGeometry(1.5, 0);
 
@@ -43,12 +58,14 @@ function init3DScene() {
   const materials = [
     new THREE.MeshStandardMaterial({
       color: 0x2563eb,
-      metalness: 0.3,
-      roughness: 0.4,
-    }), // Primary blue
+      metalness: 0.6,
+      roughness: 0.2,
+      emissive: 0x1034a6,
+      emissiveIntensity: 0.2,
+    }), // Primary blue with glow
     new THREE.MeshStandardMaterial({
       color: 0x1e40af,
-      metalness: 0.3,
+      metalness: 0.4,
       roughness: 0.4,
     }), // Darker blue
   ];
@@ -68,13 +85,43 @@ function init3DScene() {
   line.material.opacity = 0.2;
   group.add(line);
 
+  // Add particle system for background effect
+  const particleGeometry = new THREE.BufferGeometry();
+  const particleCount = 100;
+  const posArray = new Float32Array(particleCount * 3);
+
+  for (let i = 0; i < particleCount * 3; i += 3) {
+    // Create particles in a sphere around the main object
+    const radius = 8 + Math.random() * 5;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI;
+
+    posArray[i] = radius * Math.sin(phi) * Math.cos(theta);
+    posArray[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+    posArray[i + 2] = radius * Math.cos(phi);
+  }
+
+  particleGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(posArray, 3)
+  );
+  const particleMaterial = new THREE.PointsMaterial({
+    size: 0.05,
+    color: 0x2563eb,
+    transparent: true,
+    opacity: 0.8,
+  });
+
+  const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+  group.add(particleSystem);
+
   // Add some smaller shapes orbiting around
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 5; i++) {
     const smallGeometry = new THREE.TetrahedronGeometry(0.3, 0);
     const smallShape = new THREE.Mesh(smallGeometry, materials[1]);
 
     // Position small shapes in orbit
-    const angle = (i / 3) * Math.PI * 2;
+    const angle = (i / 5) * Math.PI * 2;
     const radius = 2.5;
     smallShape.position.x = Math.cos(angle) * radius;
     smallShape.position.y = Math.sin(angle) * radius;
@@ -84,8 +131,9 @@ function init3DScene() {
       orbit: {
         angle: angle,
         radius: radius,
-        speed: 0.01 + i * 0.005,
-        yOffset: i * 0.2,
+        speed: 0.005 + i * 0.002,
+        yOffset: i * 0.1,
+        verticalSpeed: 0.002 + Math.random() * 0.003,
       },
     };
 
@@ -96,31 +144,52 @@ function init3DScene() {
   scene.add(group);
   cube = group; // Use existing cube variable to control rotation
 
+  // Position the 3D object
+  cube.position.set(0, 0, 0);
+
+  // Make container full-screen and fixed position
+  container.style.position = "fixed";
+  container.style.top = "0";
+  container.style.left = "0";
+  container.style.width = "100%";
+  container.style.height = "100%";
+  container.style.zIndex = "-1"; // Behind content
+  container.style.pointerEvents = "auto"; // Enable mouse events
+
   // Add event listeners for interaction
   container.addEventListener("mousedown", onMouseDown);
-  container.addEventListener("mouseup", onMouseUp);
-  container.addEventListener("mousemove", onMouseMove);
-  container.addEventListener("touchstart", onTouchStart);
-  container.addEventListener("touchend", onMouseUp);
-  container.addEventListener("touchmove", onTouchMove);
+  window.addEventListener("mouseup", onMouseUp);
+  window.addEventListener("mousemove", onMouseMove);
+  container.addEventListener("touchstart", onTouchStart, { passive: false });
+  window.addEventListener("touchend", onMouseUp);
+  window.addEventListener("touchmove", onTouchMove, { passive: false });
+  window.addEventListener("scroll", onScroll);
+
+  // Store window height
+  windowHeight = window.innerHeight;
 
   // Handle resize
   window.addEventListener("resize", onWindowResize);
 
   // Start animation
   animate();
+
+  console.log("3D scene initialized");
+}
+
+function onScroll() {
+  scrollY = window.scrollY;
 }
 
 function onWindowResize() {
-  const container = document.getElementById("3d-container");
-  if (!container || !camera || !renderer) return;
-
-  camera.aspect = container.clientWidth / container.clientHeight;
+  camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  windowHeight = window.innerHeight;
 }
 
 function onMouseDown(event) {
+  event.preventDefault();
   mouseDown = true;
   lastMousePosition = {
     x: event.clientX,
@@ -134,6 +203,8 @@ function onMouseUp() {
 
 function onMouseMove(event) {
   if (!mouseDown) return;
+
+  event.preventDefault();
 
   const deltaMove = {
     x: event.clientX - lastMousePosition.x,
@@ -151,6 +222,7 @@ function onMouseMove(event) {
 
 function onTouchStart(event) {
   if (event.touches.length === 1) {
+    event.preventDefault();
     mouseDown = true;
     lastMousePosition = {
       x: event.touches[0].clientX,
@@ -160,7 +232,9 @@ function onTouchStart(event) {
 }
 
 function onTouchMove(event) {
-  if (event.touches.length === 1) {
+  if (event.touches.length === 1 && mouseDown) {
+    event.preventDefault();
+
     const deltaMove = {
       x: event.touches[0].clientX - lastMousePosition.x,
       y: event.touches[0].clientY - lastMousePosition.y,
@@ -179,47 +253,82 @@ function onTouchMove(event) {
 function animate() {
   requestAnimationFrame(animate);
 
+  // Only render if cube, renderer, scene, and camera exist
+  if (!cube || !renderer || !scene || !camera) return;
+
+  // Calculate scroll position effect
+  const scrollFactor = scrollY / windowHeight;
+
   // Smoothly rotate cube towards target rotation
-  if (cube) {
-    cube.rotation.x += (targetRotation.x - cube.rotation.x) * 0.1;
-    cube.rotation.y += (targetRotation.y - cube.rotation.y) * 0.1;
+  cube.rotation.x += (targetRotation.x - cube.rotation.x) * 0.1;
+  cube.rotation.y += (targetRotation.y - cube.rotation.y) * 0.1;
 
-    // Add subtle automatic rotation
-    cube.rotation.x += 0.003;
-    cube.rotation.y += 0.005;
+  // Scroll-based effects
+  // Move the cube based on scroll position
+  cube.position.y = -scrollFactor * 2;
 
-    // Animate orbiting small shapes
-    if (cube.children) {
-      cube.children.forEach((child) => {
-        if (child.userData && child.userData.orbit) {
-          const orbit = child.userData.orbit;
-          orbit.angle += orbit.speed;
+  // Increase rotation speed based on scroll
+  const baseRotationX = 0.003;
+  const baseRotationY = 0.005;
+  const scrollRotationFactor = 1 + scrollFactor * 0.5;
 
-          // Update position in circular path
-          child.position.x = Math.cos(orbit.angle) * orbit.radius;
-          child.position.y =
-            Math.sin(orbit.angle) * orbit.radius + orbit.yOffset;
+  // Add subtle automatic rotation, enhanced by scroll
+  cube.rotation.x += baseRotationX * scrollRotationFactor;
+  cube.rotation.y += baseRotationY * scrollRotationFactor;
 
-          // Add some y-axis wobble
-          child.position.y += Math.sin(Date.now() * 0.002) * 0.1;
+  // Scale based on scroll
+  const baseScale = 1.0;
+  const scrollScaleFactor = 1 - scrollFactor * 0.2;
+  cube.scale.set(
+    baseScale * scrollScaleFactor,
+    baseScale * scrollScaleFactor,
+    baseScale * scrollScaleFactor
+  );
 
-          // Rotate the small shapes
-          child.rotation.x += 0.02;
-          child.rotation.z += 0.02;
-        }
-      });
-    }
+  // Animate orbiting small shapes
+  if (cube.children) {
+    cube.children.forEach((child, index) => {
+      if (child.userData && child.userData.orbit) {
+        const orbit = child.userData.orbit;
+
+        // Adjust orbit speed based on scroll
+        orbit.angle += orbit.speed * scrollRotationFactor;
+
+        // Update position in circular path
+        child.position.x = Math.cos(orbit.angle) * orbit.radius;
+        child.position.y = Math.sin(orbit.angle) * orbit.radius + orbit.yOffset;
+
+        // Add vertical motion with scroll influence
+        child.position.y +=
+          Math.sin(Date.now() * orbit.verticalSpeed) *
+          (0.1 + scrollFactor * 0.1);
+
+        // Rotate the small shapes
+        child.rotation.x += 0.02 * scrollRotationFactor;
+        child.rotation.z += 0.02 * scrollRotationFactor;
+      }
+
+      // If it's the particle system (typically the last child)
+      if (child instanceof THREE.Points) {
+        // Rotate the particle system slowly
+        child.rotation.y += 0.0005;
+        child.rotation.x -= 0.0003;
+      }
+    });
   }
 
-  if (renderer && scene && camera) {
-    renderer.render(scene, camera);
-  }
+  renderer.render(scene, camera);
 }
 
 // Initialize when the DOM is ready
 document.addEventListener("DOMContentLoaded", function () {
-  // We'll call init3DScene after Three.js is loaded
-  if (typeof THREE !== "undefined") {
-    init3DScene();
-  }
+  console.log("DOM content loaded, checking for THREE");
+  setTimeout(() => {
+    if (typeof THREE !== "undefined") {
+      console.log("THREE.js is loaded, initializing 3D scene");
+      init3DScene();
+    } else {
+      console.error("THREE.js is not loaded!");
+    }
+  }, 500); // Short delay to ensure everything is loaded
 });
