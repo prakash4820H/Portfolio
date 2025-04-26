@@ -10,12 +10,15 @@ A modern, responsive portfolio website built with HTML, CSS, and JavaScript.
 - Contact form for potential employers or collaborators
 - Mobile-friendly navigation with hamburger menu
 - Smooth scrolling and scroll animations
+- Resume download functionality
+- 3D interactive background using Three.js
 
 ## Technologies Used
 
 - HTML5
 - CSS3 (with CSS Variables, Flexbox, and Grid)
 - JavaScript (ES6+)
+- Three.js for 3D graphics
 - Font Awesome for icons
 
 ## Project Structure
@@ -23,6 +26,8 @@ A modern, responsive portfolio website built with HTML, CSS, and JavaScript.
 - `index.html`: Main HTML file containing all portfolio content
 - `styles.css`: CSS styles for the portfolio
 - `script.js`: JavaScript for interactive elements
+- `js/3d-scene.js`: Three.js implementation for the 3D background
+- `resume/`: Directory containing resume files for download
 - `README.md`: This documentation file
 
 ## Getting Started
@@ -31,6 +36,10 @@ A modern, responsive portfolio website built with HTML, CSS, and JavaScript.
 2. Open `index.html` in your web browser
 
 ## Customization
+
+### Adding Your Resume
+
+Replace the placeholder file in the `resume/` directory with your actual resume PDF file. Make sure it's named `resume.pdf` to match the link in the HTML.
 
 ### Changing the Hero Image
 
@@ -46,8 +55,7 @@ Replace the placeholder contact information in the contact section with your act
 
 ## Future Enhancements
 
-- Add a dark/light mode toggle
-- Implement a blog section
+- Add a blog section
 - Add a skills progress bar visualization
 - Backend integration for the contact form
 
