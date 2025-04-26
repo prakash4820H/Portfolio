@@ -31,6 +31,41 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("theme", newTheme);
   });
 
+  // Handle resume download
+  const resumeDownloadBtn = document.querySelector(
+    'a[href="resume/resume.pdf"]'
+  );
+  if (resumeDownloadBtn) {
+    // Get the website URL
+    const portfolioUrl = window.location.origin + window.location.pathname;
+
+    // Add tracking param when downloading the resume
+    resumeDownloadBtn.addEventListener("click", (e) => {
+      // Log that resume was downloaded (for potential future analytics)
+      console.log("Resume downloaded");
+
+      // Add source information to the download attribute
+      resumeDownloadBtn.setAttribute(
+        "download",
+        "Jaya_Prakash_Pinninti_Resume.pdf"
+      );
+
+      // Show a brief message to the user
+      const notification = document.createElement("div");
+      notification.className = "resume-notification";
+      notification.textContent = "Resume download started!";
+      document.body.appendChild(notification);
+
+      // Remove notification after 3 seconds
+      setTimeout(() => {
+        notification.classList.add("fade-out");
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 500);
+      }, 3000);
+    });
+  }
+
   // Handle loader for 3D scene
   const loader = document.getElementById("loader");
 
