@@ -219,6 +219,26 @@ nav {
   flex: 1;
 }
 
+.about-3d {
+  flex: 1;
+  height: 350px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  cursor: grab;
+}
+
+.about-3d:active {
+  cursor: grabbing;
+}
+
+.about-3d canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
 /* Skills section */
 .skills-container {
   display: grid;

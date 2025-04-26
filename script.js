@@ -90,4 +90,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Run animation on page load and scroll
   window.addEventListener("load", animateOnScroll);
   window.addEventListener("scroll", animateOnScroll);
+
+  // Initialize 3D scene if Three.js is loaded
+  if (typeof THREE !== "undefined" && document.getElementById("3d-container")) {
+    init3DScene();
+  }
 });
