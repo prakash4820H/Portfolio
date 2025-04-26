@@ -1,12 +1,56 @@
 // Wait for DOM to load
 document.addEventListener("DOMContentLoaded", () => {
+  // Theme toggling functionality
+  const themeToggle = document.getElementById("theme-toggle");
+  const themeIcon = themeToggle.querySelector("i");
+
+  // Check for saved theme preference or use system preference
+  const savedTheme = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  // Apply theme based on saved preference or system preference
+  if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+    document.documentElement.setAttribute("data-theme", "dark");
+    themeIcon.classList.replace("fa-moon", "fa-sun");
+  }
+
+  // Toggle theme when button is clicked
+  themeToggle.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    let newTheme;
+
+    if (currentTheme === "dark") {
+      newTheme = "";
+      themeIcon.classList.replace("fa-sun", "fa-moon");
+    } else {
+      newTheme = "dark";
+      themeIcon.classList.replace("fa-moon", "fa-sun");
+    }
+
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  });
+
+  // Handle loader for 3D scene
+  const loader = document.getElementById("loader");
+
+  // Hide loader when window is fully loaded
+  window.addEventListener("load", () => {
+    // Allow a slight delay to ensure 3D scene starts rendering
+    setTimeout(() => {
+      loader.classList.add("loader-hidden");
+    }, 1000);
+  });
+
   // Navigation scroll effect
   const nav = document.querySelector("nav");
 
   window.addEventListener("scroll", () => {
     if (window.scrollY > 50) {
       nav.classList.add("nav-scrolled");
-      document.querySelector(".logo").style.color = "#1e293b";
+      document.querySelector(".logo").style.color = getComputedStyle(
+        document.documentElement
+      ).getPropertyValue("--text-color");
     } else {
       nav.classList.remove("nav-scrolled");
       document.querySelector(".logo").style.color = "white";

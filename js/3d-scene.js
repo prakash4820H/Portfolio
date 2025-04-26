@@ -195,6 +195,12 @@ function init3DScene() {
   setTimeout(function () {
     startTime = Date.now();
     startAnimation();
+
+    // Hide the loader when scene is initialized
+    const loader = document.getElementById("loader");
+    if (loader) {
+      loader.classList.add("loader-hidden");
+    }
   }, 50);
 
   console.log("3D scene successfully initialized");
