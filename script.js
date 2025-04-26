@@ -1,30 +1,3 @@
-// GitHub Pages Dark Mode Fix Helper
-(function () {
-  // This helps ensure the toggle still works even if there are GitHub Pages caching issues
-  try {
-    // Check if we're on GitHub Pages
-    if (window.location.hostname.includes("github.io")) {
-      // Make sure theme toggle exists when DOM is ready
-      document.addEventListener("DOMContentLoaded", function () {
-        const themeToggle = document.getElementById("theme-toggle");
-        if (themeToggle) {
-          // Force refresh the theme toggle binding
-          themeToggle.addEventListener("click", function () {
-            const currentTheme = localStorage.getItem("theme");
-            localStorage.setItem(
-              "theme",
-              currentTheme === "dark" ? "light" : "dark"
-            );
-            window.location.reload();
-          });
-        }
-      });
-    }
-  } catch (e) {
-    console.log("Dark mode helper error:", e);
-  }
-})();
-
 // Wait for DOM to load
 document.addEventListener("DOMContentLoaded", () => {
   // Theme toggling functionality
