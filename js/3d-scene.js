@@ -4,10 +4,37 @@ let targetRotation = { x: 0, y: 0 };
 let mouseDown = false;
 let lastMousePosition = { x: 0, y: 0 };
 let scrollY = 0;
+let lastScrollY = 0;
 let windowHeight = 0;
 let animationFrame = null;
+let isAnimating = false;
+let startTime = null;
+let isInitializing = false;
+
+// Initialize the scene when the page loads
+window.addEventListener("load", function () {
+  console.log("Window loaded, initializing Three.js");
+
+  // Prevent multiple initializations
+  if (isInitializing) return;
+  isInitializing = true;
+
+  // Try to initialize Three.js
+  if (typeof THREE !== "undefined") {
+    init3DScene();
+  } else {
+    console.error("THREE.js not loaded, trying to load it");
+    loadThreeJs();
+  }
+});
 
 function init3DScene() {
+  // Prevent double initialization
+  if (scene && renderer) {
+    console.log("3D scene already initialized");
+    return;
+  }
+
   // Create scene container
   const container = document.getElementById("3d-container");
   if (!container) {
@@ -38,6 +65,9 @@ function init3DScene() {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setClearColor(0x000000, 0); // Transparent background
+
+  // Clear any existing content in the container
+  container.innerHTML = "";
   container.appendChild(renderer.domElement);
 
   // Add ambient light
@@ -147,45 +177,88 @@ function init3DScene() {
   scene.add(group);
   cube = group; // Use existing cube variable to control rotation
 
-  // Position the 3D object
+  // Initial position - center of screen
   cube.position.set(0, 0, 0);
 
-  // Make container full-screen and fixed position
-  container.style.position = "fixed";
-  container.style.top = "0";
-  container.style.left = "0";
-  container.style.width = "100%";
-  container.style.height = "100%";
-  container.style.zIndex = "-1"; // Behind content
-  container.style.pointerEvents = "auto"; // Enable mouse events
-
-  // Add event listeners for interaction - add them to the window to ensure they work
-  window.addEventListener("mousedown", onMouseDown);
-  window.addEventListener("mouseup", onMouseUp);
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("touchstart", onTouchStart, { passive: false });
-  window.addEventListener("touchend", onMouseUp);
-  window.addEventListener("touchmove", onTouchMove, { passive: false });
-  window.addEventListener("scroll", onScroll);
-
-  // Store window height
+  // Get initial scroll position
+  scrollY = window.pageYOffset || document.documentElement.scrollTop;
+  lastScrollY = scrollY;
   windowHeight = window.innerHeight;
 
-  // Handle resize
+  // Set up event listeners
+  setupEventListeners(container);
+
+  // Reset animation flags
+  isAnimating = false;
+
+  // Start animation after a short delay to avoid initial glitch
+  setTimeout(function () {
+    startTime = Date.now();
+    startAnimation();
+  }, 50);
+
+  console.log("3D scene successfully initialized");
+  isInitializing = false;
+}
+
+function setupEventListeners(container) {
+  // Mouse/touch events for interactivity
+  document.addEventListener("mousedown", onMouseDown);
+  document.addEventListener("mouseup", onMouseUp);
+  document.addEventListener("mousemove", onMouseMove);
+  document.addEventListener("touchstart", onTouchStart, { passive: false });
+  document.addEventListener("touchend", onMouseUp);
+  document.addEventListener("touchmove", onTouchMove, { passive: false });
+
+  // Add scroll event listener
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  // Handle window resize
   window.addEventListener("resize", onWindowResize);
 
-  // Start animation
-  animate();
+  // Handle page visibility changes
+  document.addEventListener("visibilitychange", onVisibilityChange);
+}
 
-  console.log("3D scene initialized");
+function onVisibilityChange() {
+  if (document.hidden) {
+    stopAnimation();
+  } else {
+    // Reset start time when becoming visible
+    startTime = Date.now();
+    startAnimation();
+  }
+}
+
+function startAnimation() {
+  if (!isAnimating) {
+    isAnimating = true;
+    animate();
+    console.log("Animation started");
+  }
+}
+
+function stopAnimation() {
+  if (isAnimating) {
+    isAnimating = false;
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+    }
+    console.log("Animation stopped");
+  }
 }
 
 function onScroll() {
+  // Update scroll position
+  lastScrollY = scrollY;
   scrollY = window.pageYOffset || document.documentElement.scrollTop;
-  console.log("Scroll position:", scrollY);
 }
 
 function onWindowResize() {
+  if (!camera || !renderer) return;
+
+  // Update camera and renderer on resize
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -193,12 +266,20 @@ function onWindowResize() {
 }
 
 function onMouseDown(event) {
+  // Only handle left mouse button
+  if (event.button !== undefined && event.button !== 0) return;
+
   mouseDown = true;
   lastMousePosition = {
-    x: event.clientX || event.touches[0].clientX,
-    y: event.clientY || event.touches[0].clientY,
+    x:
+      event.clientX ||
+      (event.touches && event.touches[0] ? event.touches[0].clientX : 0),
+    y:
+      event.clientY ||
+      (event.touches && event.touches[0] ? event.touches[0].clientY : 0),
   };
-  console.log("Mouse down at:", lastMousePosition);
+
+  // Don't prevent default here to allow other interactions
 }
 
 function onMouseUp() {
@@ -224,30 +305,35 @@ function onMouseMove(event) {
     y: y - lastMousePosition.y,
   };
 
+  // Adjust rotation based on mouse movement
   targetRotation.y += deltaMove.x * 0.01;
   targetRotation.x += deltaMove.y * 0.01;
 
   lastMousePosition = { x, y };
-
-  console.log("Dragging, new rotation target:", targetRotation);
 }
 
 function onTouchStart(event) {
-  event.preventDefault();
   if (event.touches.length === 1) {
+    // Only prevent default for touches on the 3D container
+    if (event.target.closest("#3d-container")) {
+      event.preventDefault();
+    }
+
     mouseDown = true;
     lastMousePosition = {
       x: event.touches[0].clientX,
       y: event.touches[0].clientY,
     };
-    console.log("Touch start at:", lastMousePosition);
   }
 }
 
 function onTouchMove(event) {
   if (!mouseDown || event.touches.length !== 1) return;
 
-  event.preventDefault();
+  // Only prevent default for touches on the 3D container
+  if (event.target.closest("#3d-container")) {
+    event.preventDefault();
+  }
 
   const deltaMove = {
     x: event.touches[0].clientX - lastMousePosition.x,
@@ -261,132 +347,121 @@ function onTouchMove(event) {
     x: event.touches[0].clientX,
     y: event.touches[0].clientY,
   };
-
-  console.log("Touch move, new rotation target:", targetRotation);
 }
 
 function animate() {
-  // Always ensure we keep animating with requestAnimationFrame
+  // Request next animation frame first to ensure continuous animation
   animationFrame = requestAnimationFrame(animate);
 
-  // Only render if cube, renderer, scene, and camera exist
+  // Ensure we have all the necessary components
   if (!cube || !renderer || !scene || !camera) {
-    console.warn("3D elements not fully initialized, retrying animation frame");
+    console.warn("3D elements not fully initialized");
     return;
   }
 
-  // Always maintain continuous rotation, even without user interaction
-  const autoRotationX = 0.003;
-  const autoRotationY = 0.005;
+  // Get the current time for animations (in seconds)
+  const now = Date.now();
+  const elapsedMilliseconds = startTime ? now - startTime : 0;
+  const time = now * 0.001;
 
-  // Calculate scroll position effect - add 1 to ensure movement even at top
-  const scrollFactor = scrollY / windowHeight + 1;
+  // Apply smooth start effect - gradually increase animation speed during first second
+  // This prevents the initial glitchy double rotation
+  const startupProgress = Math.min(elapsedMilliseconds / 1000, 1);
+  const easedStartup = startupProgress * startupProgress; // Quadratic easing
 
-  // Basic continuous rotation regardless of other factors
-  cube.rotation.x += autoRotationX;
-  cube.rotation.y += autoRotationY;
+  // ==================== BASE ROTATION ====================
+  // Apply base rotation with smooth startup
+  const baseRotationX = 0.005 * easedStartup;
+  const baseRotationY = 0.007 * easedStartup;
+  cube.rotation.x += baseRotationX;
+  cube.rotation.y += baseRotationY;
 
-  // Add user interaction rotation (smooth towards target)
-  cube.rotation.x += (targetRotation.x - cube.rotation.x) * 0.05;
-  cube.rotation.y += (targetRotation.y - cube.rotation.y) * 0.05;
+  // ==================== USER INTERACTION ROTATION ====================
+  // Apply any user interaction rotation on top of the base rotation
+  const interactionFactor = 0.05 * easedStartup;
+  cube.rotation.x += (targetRotation.x - cube.rotation.x) * interactionFactor;
+  cube.rotation.y += (targetRotation.y - cube.rotation.y) * interactionFactor;
 
-  // Scroll-based effects
-  // Move the cube based on scroll position
-  cube.position.y = -scrollY * 0.001;
+  // ==================== SCROLL EFFECTS ====================
+  // Calculate scroll effects - make it dramatic enough to be noticeable
+  // This maps scroll position to 0-1 range based on viewport height
+  const scrollProgress = Math.min(scrollY / (windowHeight * 2), 1);
 
-  // Increase rotation speed based on scroll
-  const scrollRotationFactor = Math.min(1 + scrollFactor * 0.05, 1.5);
+  // Calculate the scroll delta (how fast user is scrolling)
+  const scrollDelta = (scrollY - lastScrollY) * 0.01;
 
-  // Scale based on scroll - subtle effect
+  // 1. Position effect: Maintain centered Y position but add wave effect
+  const waveOffset = Math.sin(time * 0.5) * 0.2 * easedStartup;
+  cube.position.y = waveOffset;
+
+  // 2. Rotation boost based on scroll position and scroll speed
+  const rotationBoost =
+    1 + (scrollProgress * 0.5 + Math.abs(scrollDelta)) * easedStartup;
+
+  // 3. Scale effect based on scroll - subtle zoom out as you scroll down
   const baseScale = 1.0;
-  const scrollScaleFactor = Math.max(1 - scrollY * 0.0005, 0.8);
+  const scrollScaleFactor = Math.max(1 - scrollProgress * 0.1, 0.9);
   cube.scale.set(
     baseScale * scrollScaleFactor,
     baseScale * scrollScaleFactor,
     baseScale * scrollScaleFactor
   );
 
-  // Animate orbiting small shapes
+  // ==================== ORBITING OBJECTS ANIMATION ====================
   if (cube.children) {
     cube.children.forEach((child, index) => {
       if (child.userData && child.userData.orbit) {
         const orbit = child.userData.orbit;
 
-        // Adjust orbit speed based on scroll
-        orbit.angle += orbit.speed * scrollRotationFactor;
+        // Orbit speed increases with scroll (apply smooth startup)
+        orbit.angle += orbit.speed * rotationBoost * easedStartup;
 
         // Update position in circular path
         child.position.x = Math.cos(orbit.angle) * orbit.radius;
         child.position.y = Math.sin(orbit.angle) * orbit.radius + orbit.yOffset;
 
-        // Add vertical motion with scroll influence
-        child.position.y +=
-          Math.sin(Date.now() * orbit.verticalSpeed) *
-          (0.1 + scrollFactor * 0.1);
+        // Add vertical motion based on time (apply smooth startup)
+        child.position.y += Math.sin(time * 2 + index) * 0.1 * easedStartup;
 
-        // Rotate the small shapes
-        child.rotation.x += 0.02 * scrollRotationFactor;
-        child.rotation.z += 0.02 * scrollRotationFactor;
+        // Each small object rotates around its own axis (apply smooth startup)
+        child.rotation.x += 0.02 * rotationBoost * easedStartup;
+        child.rotation.z += 0.02 * rotationBoost * easedStartup;
+
+        // Add extra rotation when scrolling fast
+        if (Math.abs(scrollDelta) > 0.1) {
+          child.rotation.y += scrollDelta * 0.1 * easedStartup;
+        }
       }
 
-      // If it's the particle system (typically the last child)
+      // Particle system animation (usually the last child)
       if (child instanceof THREE.Points) {
-        // Rotate the particle system slowly but continuously
-        child.rotation.y += 0.001 * scrollRotationFactor;
-        child.rotation.x -= 0.0005 * scrollRotationFactor;
+        // Rotate based on time for smooth motion (apply smooth startup)
+        child.rotation.y = time * 0.1 * easedStartup;
+        child.rotation.x = time * 0.05 * easedStartup;
+
+        // When scrolling, add extra rotation to particles
+        if (Math.abs(scrollDelta) > 0.1) {
+          child.rotation.y += scrollDelta * 0.05 * easedStartup;
+        }
       }
     });
   }
 
+  // Render the scene
   renderer.render(scene, camera);
 }
 
-// Initialize when the DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initThreeJS);
-} else {
-  // If DOMContentLoaded has already fired, initialize immediately
-  initThreeJS();
+// Load Three.js dynamically if it's not available
+function loadThreeJs() {
+  const script = document.createElement("script");
+  script.src =
+    "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+  script.onload = function () {
+    console.log("THREE.js loaded dynamically");
+    setTimeout(init3DScene, 100);
+  };
+  script.onerror = function () {
+    console.error("Failed to load THREE.js");
+  };
+  document.head.appendChild(script);
 }
-
-function initThreeJS() {
-  console.log("DOM content loaded, waiting to initialize THREE.js");
-
-  // Check if THREE is available
-  if (typeof THREE === "undefined") {
-    console.error("THREE.js not loaded! Attempting to load via script tag");
-
-    // Try to load Three.js dynamically if it's not already loaded
-    const script = document.createElement("script");
-    script.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-    script.onload = () => {
-      console.log("THREE.js loaded dynamically, initializing scene");
-      init3DScene();
-    };
-    script.onerror = () => {
-      console.error("Failed to load THREE.js dynamically");
-    };
-    document.head.appendChild(script);
-  } else {
-    console.log("THREE.js already loaded, initializing scene");
-    // Short delay to ensure everything is ready
-    setTimeout(init3DScene, 300);
-  }
-}
-
-// Handle page visibility changes to pause/resume animation
-document.addEventListener("visibilitychange", function () {
-  if (document.hidden) {
-    // Page is hidden, pause animation to save resources
-    if (animationFrame) {
-      cancelAnimationFrame(animationFrame);
-      animationFrame = null;
-    }
-  } else {
-    // Page is visible again, resume animation if it was paused
-    if (!animationFrame) {
-      animate();
-    }
-  }
-});

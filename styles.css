@@ -233,7 +233,17 @@ nav {
   height: 100vh;
   z-index: -1;
   pointer-events: all;
-  touch-action: none; /* Prevents touch events from scrolling the page */
+  touch-action: manipulation; /* Allow touch but prevent default scrolling */
+  overflow: hidden; /* Prevent any overflow issues */
+  will-change: transform; /* Optimize for GPU acceleration */
+  backface-visibility: hidden; /* Avoid flickering */
+  transition: none; /* Prevent unwanted transitions */
+}
+
+.about-3d canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Skills section */
