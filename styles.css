@@ -411,7 +411,7 @@ header::before {
   will-change: transform;
   backface-visibility: hidden;
   transition: none;
-  opacity: 0.9;
+  opacity: 0.5;
 }
 
 .about-3d canvas {

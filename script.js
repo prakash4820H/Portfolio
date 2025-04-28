@@ -140,14 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
-
-    // Add parallax effect to 3D container
-    if (window.scrollY > 0) {
-      const container = document.getElementById("3d-container");
-      if (container) {
-        container.style.transform = `translateY(${window.scrollY * 0.2}px)`;
-      }
-    }
   }
 
   // Handle navigation highlight
