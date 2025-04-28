@@ -14,7 +14,7 @@
   --bg-color: #ffffff;
   --bg-light: rgba(248, 250, 252, 0.9);
   --bg-dark: rgba(30, 41, 59, 0.95);
-  --header-overlay: rgba(0, 0, 0, 0.7);
+  --header-overlay: rgba(0, 0, 0, 0.4);
   --card-bg: #ffffff;
   --section-bg: rgba(255, 255, 255, 0.85);
   --transition: all 0.3s ease;
@@ -38,7 +38,7 @@
   --bg-color: #0f172a;
   --bg-light: rgba(15, 23, 42, 0.9);
   --bg-dark: rgba(15, 23, 42, 0.95);
-  --header-overlay: rgba(0, 0, 0, 0.8);
+  --header-overlay: rgba(0, 0, 0, 0.7);
   --card-bg: #1e293b;
   --section-bg: rgba(15, 23, 42, 0.85);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);
@@ -202,7 +202,10 @@ header {
   height: 100vh;
   position: relative;
   z-index: 1;
-  background: linear-gradient(var(--header-overlay), var(--header-overlay));
+  background: linear-gradient(var(--header-overlay), var(--header-overlay)),
+    url("https://images.unsplash.com/photo-1579547945413-497e1b99dac0?q=80&w=1920&auto=format&fit=crop");
+  background-size: cover;
+  background-position: center;
   color: white;
   display: flex;
   align-items: center;
@@ -331,6 +334,12 @@ header::before {
   margin: 0 auto;
   position: relative;
   z-index: 2;
+  padding: 3rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: var(--glass-border);
 }
 
 .hero h1 {
@@ -1299,4 +1308,12 @@ footer {
     width: 95%;
     padding: 1.5rem;
   }
+}
+
+[data-theme="dark"] .hero {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .hero h1 {
+  color: white;
 }
