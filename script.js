@@ -4,17 +4,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeToggle = document.getElementById("theme-toggle");
   const themeIcon = themeToggle.querySelector("i");
 
-  // Check for saved theme preference or use system preference
+  // Check for saved theme preference or respect OS preference
   const savedTheme = localStorage.getItem("theme");
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-  // Apply theme based on saved preference or system preference
+  // Set initial theme
   if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
     document.documentElement.setAttribute("data-theme", "dark");
     themeIcon.classList.replace("fa-moon", "fa-sun");
   }
 
-  // Toggle theme when button is clicked
+  // Handle theme toggle click
   themeToggle.addEventListener("click", () => {
     const currentTheme = document.documentElement.getAttribute("data-theme");
     let newTheme;
@@ -29,6 +29,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.documentElement.setAttribute("data-theme", newTheme);
     localStorage.setItem("theme", newTheme);
+
+    // Add transition effect when changing themes
+    document.body.style.transition =
+      "background-color 0.5s ease, color 0.5s ease";
+    setTimeout(() => {
+      document.body.style.transition = "";
+    }, 500);
   });
 
   // Handle resume download
@@ -66,78 +73,133 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Handle loader for 3D scene
-  const loader = document.getElementById("loader");
-
-  // Hide loader when window is fully loaded
+  // Hide loader when content is loaded
   window.addEventListener("load", () => {
-    // Allow a slight delay to ensure 3D scene starts rendering
-    setTimeout(() => {
-      loader.classList.add("loader-hidden");
-    }, 1000);
+    const loader = document.getElementById("loader");
+    loader.classList.add("loader-hidden");
+
+    // Remove loader from DOM after transition
+    loader.addEventListener("transitionend", () => {
+      loader.remove();
+    });
   });
 
-  // Function to ensure navigation elements are clickable
-  function ensureClickableElements() {
-    const navLinks = document.querySelectorAll(".nav-links a");
-    const logo = document.querySelector(".logo");
-    const hamburger = document.querySelector(".hamburger");
+  // Fade in elements on scroll
+  function animateOnScroll() {
+    const sections = document.querySelectorAll(".section");
+    const skills = document.querySelectorAll(".skill-progress-item");
+    const cards = document.querySelectorAll(
+      ".skill-category, .project-card, .blog-card"
+    );
 
-    // Make sure all nav elements are clickable
-    [logo, hamburger, ...navLinks].forEach((el) => {
-      if (el) {
-        el.style.pointerEvents = "auto";
-        el.style.cursor = "pointer";
-        // Force link to be on top
-        el.style.position = "relative";
-        el.style.zIndex = "2000";
+    // Add staggered animation to elements
+    const animateItems = (items, delay = 0.1) => {
+      items.forEach((item, index) => {
+        const rect = item.getBoundingClientRect();
+        const isVisible = rect.top <= window.innerHeight * 0.9;
+
+        if (isVisible) {
+          setTimeout(() => {
+            item.style.opacity = "1";
+            item.style.transform = "translateY(0)";
+          }, index * 100);
+        }
+      });
+    };
+
+    sections.forEach((section) => {
+      const rect = section.getBoundingClientRect();
+      const isVisible = rect.top <= window.innerHeight * 0.9;
+
+      if (isVisible) {
+        section.style.opacity = "1";
+        section.style.transform = "translateY(0)";
+
+        // Animate child elements with staggered delay
+        const childElements = section.querySelectorAll(
+          ".skill-category, .project-card, .timeline-item"
+        );
+        animateItems(childElements);
       }
     });
-  }
 
-  // Run this on page load and periodically
-  ensureClickableElements();
-  // Run this check every second to ensure links remain clickable
-  setInterval(ensureClickableElements, 1000);
+    // Animate skills with progress bars
+    skills.forEach((skill) => {
+      const rect = skill.getBoundingClientRect();
+      const isVisible = rect.top <= window.innerHeight * 0.9;
 
-  // Navigation scroll effect
-  const nav = document.getElementById("main-nav");
-  const sections = document.querySelectorAll("section[id]");
-  const navLinks = document.querySelectorAll(".nav-links a");
-
-  // Function to highlight active nav item
-  function updateActiveNavLink() {
-    // Get current scroll position with a buffer for better UX
-    let scrollPosition = window.scrollY + 200;
-
-    // Find the section that is currently in view
-    sections.forEach((section) => {
-      const sectionTop = section.offsetTop;
-      const sectionHeight = section.offsetHeight;
-      const sectionId = section.getAttribute("id");
-
-      // Check if scroll position is within the section
-      if (
-        scrollPosition >= sectionTop &&
-        scrollPosition < sectionTop + sectionHeight
-      ) {
-        // Remove active class from all links
-        navLinks.forEach((link) => link.classList.remove("active"));
-
-        // Add active class to the corresponding link
-        const activeLink = document.querySelector(
-          `.nav-links a[href="#${sectionId}"]`
-        );
-        if (activeLink) {
-          activeLink.classList.add("active");
+      if (isVisible) {
+        const progressBar = skill.querySelector(".progress");
+        if (progressBar && !progressBar.classList.contains("animated")) {
+          progressBar.classList.add("animated");
+          const width = progressBar.style.width;
+          progressBar.style.width = "0";
+          setTimeout(() => {
+            progressBar.style.width = width;
+          }, 100);
         }
       }
     });
 
-    // Special case for the top of the page
-    if (window.scrollY < 100) {
-      navLinks.forEach((link) => link.classList.remove("active"));
+    // Add parallax effect to 3D container
+    if (window.scrollY > 0) {
+      const container = document.getElementById("3d-container");
+      if (container) {
+        container.style.transform = `translateY(${window.scrollY * 0.2}px)`;
+      }
     }
+  }
+
+  // Handle navigation highlight
+  const nav = document.getElementById("main-nav");
+  const sections = document.querySelectorAll("section[id]");
+  const navHeight = nav.offsetHeight + 20;
+
+  function updateActiveNavLink() {
+    let currentSection = "";
+    sections.forEach((section) => {
+      const sectionTop = section.offsetTop - navHeight;
+      const sectionHeight = section.offsetHeight;
+      if (
+        window.scrollY >= sectionTop &&
+        window.scrollY < sectionTop + sectionHeight
+      ) {
+        currentSection = section.getAttribute("id");
+      }
+    });
+
+    document.querySelectorAll(".nav-links a").forEach((link) => {
+      link.classList.remove("active");
+      if (
+        currentSection &&
+        link.getAttribute("href") === `#${currentSection}`
+      ) {
+        link.classList.add("active");
+      }
+    });
+  }
+
+  // Ensure all elements with links are clickable
+  function ensureClickableElements() {
+    document.querySelectorAll("a, button").forEach((el) => {
+      if (window.getComputedStyle(el).pointerEvents === "none") {
+        el.style.pointerEvents = "auto";
+      }
+    });
+  }
+
+  // Initial call to ensure elements are clickable
+  ensureClickableElements();
+
+  // Add mouse move parallax effect to header
+  const hero = document.querySelector(".hero");
+  if (hero) {
+    document.addEventListener("mousemove", (e) => {
+      const x = e.clientX / window.innerWidth;
+      const y = e.clientY / window.innerHeight;
+
+      hero.style.transform = `translateX(${x * 10}px) translateY(${y * 10}px)`;
+    });
   }
 
   window.addEventListener("scroll", () => {
@@ -156,10 +218,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Re-ensure clickability on scroll
     ensureClickableElements();
+
+    // Animate elements on scroll
+    animateOnScroll();
   });
 
   // Initial call to set active link on page load
   updateActiveNavLink();
+
+  // Initial animation call
+  animateOnScroll();
 
   // Mobile menu toggle
   const hamburger = document.querySelector(".hamburger");
@@ -250,35 +318,78 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Animate elements on scroll
-  const animateOnScroll = () => {
-    const sections = document.querySelectorAll(".section");
+  // Implement gallery functionality
+  const initGallery = () => {
+    const galleries = document.querySelectorAll(".gallery-container");
 
-    sections.forEach((section) => {
-      const sectionTop = section.getBoundingClientRect().top;
-      const windowHeight = window.innerHeight;
+    galleries.forEach((gallery) => {
+      const featured = gallery.querySelector(".gallery-featured");
+      const thumbnails = gallery.querySelectorAll(".thumbnail");
+      const prev = gallery.querySelector(".gallery-prev");
+      const next = gallery.querySelector(".gallery-next");
 
-      if (sectionTop < windowHeight * 0.75) {
-        section.style.opacity = 1;
-        section.style.transform = "translateY(0)";
+      let currentIndex = 0;
+
+      const updateGallery = (index) => {
+        featured.src = thumbnails[index].src;
+        featured.alt = thumbnails[index].alt;
+
+        thumbnails.forEach((thumb) => thumb.classList.remove("active"));
+        thumbnails[index].classList.add("active");
+
+        // Add a subtle animation on image change
+        featured.style.opacity = "0";
+        featured.style.transform = "scale(0.98)";
+
+        setTimeout(() => {
+          featured.style.opacity = "1";
+          featured.style.transform = "scale(1)";
+        }, 50);
+      };
+
+      thumbnails.forEach((thumbnail, index) => {
+        thumbnail.addEventListener("click", () => {
+          currentIndex = index;
+          updateGallery(currentIndex);
+        });
+      });
+
+      if (prev && next) {
+        prev.addEventListener("click", () => {
+          currentIndex =
+            (currentIndex - 1 + thumbnails.length) % thumbnails.length;
+          updateGallery(currentIndex);
+        });
+
+        next.addEventListener("click", () => {
+          currentIndex = (currentIndex + 1) % thumbnails.length;
+          updateGallery(currentIndex);
+        });
       }
     });
   };
 
-  // Set initial styles for animation
-  document.querySelectorAll(".section").forEach((section) => {
-    section.style.opacity = 0;
-    section.style.transform = "translateY(20px)";
-    section.style.transition = "opacity 0.6s ease, transform 0.6s ease";
-  });
+  // Initialize gallery if it exists
+  if (document.querySelector(".gallery-container")) {
+    initGallery();
+  }
 
-  // Run animation on page load and scroll
-  window.addEventListener("load", animateOnScroll);
-  window.addEventListener("scroll", animateOnScroll);
+  // Add text typing animation to the hero tagline
+  const tagline = document.querySelector(".tagline");
+  if (tagline) {
+    const text = tagline.textContent;
+    tagline.textContent = "";
+    let i = 0;
 
-  // Initialize 3D scene if Three.js is loaded
-  if (typeof THREE !== "undefined" && document.getElementById("3d-container")) {
-    init3DScene();
+    function typeWriter() {
+      if (i < text.length) {
+        tagline.textContent += text.charAt(i);
+        i++;
+        setTimeout(typeWriter, 50);
+      }
+    }
+
+    setTimeout(typeWriter, 1000);
   }
 
   // Scroll Progress Indicator
@@ -297,85 +408,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update on scroll
   window.addEventListener("scroll", updateScrollProgress);
-
-  // Project Gallery Functionality
-  function initializeGalleries() {
-    document.querySelectorAll(".project-gallery").forEach((gallery) => {
-      const featured = gallery.querySelector(".gallery-featured");
-      const thumbnails = gallery.querySelectorAll(".thumbnail");
-      const prevBtn = gallery.querySelector(".gallery-prev");
-      const nextBtn = gallery.querySelector(".gallery-next");
-      let currentIndex = 0;
-
-      // Function to update the featured image
-      function updateFeatured(index) {
-        const newSrc = thumbnails[index].src;
-        const newAlt = thumbnails[index].alt;
-
-        // Add fade-out class
-        featured.style.opacity = "0";
-
-        // Change image after fade out
-        setTimeout(() => {
-          featured.src = newSrc;
-          featured.alt = newAlt;
-          featured.style.opacity = "1";
-        }, 200);
-
-        // Update active thumbnail
-        thumbnails.forEach((thumb) => thumb.classList.remove("active"));
-        thumbnails[index].classList.add("active");
-
-        currentIndex = index;
-      }
-
-      // Event listeners for thumbnails
-      thumbnails.forEach((thumbnail, index) => {
-        thumbnail.addEventListener("click", () => updateFeatured(index));
-      });
-
-      // Previous button click
-      prevBtn.addEventListener("click", () => {
-        currentIndex =
-          (currentIndex - 1 + thumbnails.length) % thumbnails.length;
-        updateFeatured(currentIndex);
-      });
-
-      // Next button click
-      nextBtn.addEventListener("click", () => {
-        currentIndex = (currentIndex + 1) % thumbnails.length;
-        updateFeatured(currentIndex);
-      });
-
-      // Keyboard navigation
-      gallery.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowLeft") prevBtn.click();
-        if (e.key === "ArrowRight") nextBtn.click();
-      });
-
-      // Auto-advance every 5 seconds if not interacted with recently
-      let autoAdvanceTimer;
-      const startAutoAdvance = () => {
-        autoAdvanceTimer = setInterval(() => {
-          nextBtn.click();
-        }, 5000);
-      };
-
-      const stopAutoAdvance = () => {
-        clearInterval(autoAdvanceTimer);
-      };
-
-      // Start auto-advance
-      startAutoAdvance();
-
-      // Stop auto-advance on interaction
-      gallery.addEventListener("mouseenter", stopAutoAdvance);
-      gallery.addEventListener("mouseleave", startAutoAdvance);
-      gallery.addEventListener("touchstart", stopAutoAdvance);
-      gallery.addEventListener("touchend", startAutoAdvance);
-    });
-  }
-
-  // Initialize galleries when DOM is loaded
-  initializeGalleries();
 });
