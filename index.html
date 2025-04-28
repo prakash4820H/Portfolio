@@ -60,6 +60,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Our 3D Scene Code -->
     <script src="js/3d-scene.js" async defer></script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Jaya Prakash Pinninti",
+        "url": "https://prakash4820h.github.io/Portfolio/",
+        "jobTitle": "Web Developer | Game Modder | QA Specialist",
+        "alumniOf": "KL University",
+        "sameAs": ["https://github.com/prakash4820h", "YOUR_LINKEDIN_URL"]
+      }
+    </script>
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://ui-avatars.com" />
+
+    <!-- Preload critical assets -->
+    <link rel="preload" href="styles.css" as="style" />
+    <link rel="preload" href="script.js" as="script" />
   </head>
   <body>
     <!-- Loading Animation -->
@@ -152,6 +171,44 @@
     <section id="skills" class="section bg-light">
       <div class="container">
         <h2>Skills</h2>
+        <div class="skills-progress">
+          <div class="skill-progress-item">
+            <div class="skill-progress-header">
+              <span>Frontend Development</span>
+              <span class="percentage">90%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" style="width: 90%"></div>
+            </div>
+          </div>
+          <div class="skill-progress-item">
+            <div class="skill-progress-header">
+              <span>React & Next.js</span>
+              <span class="percentage">85%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" style="width: 85%"></div>
+            </div>
+          </div>
+          <div class="skill-progress-item">
+            <div class="skill-progress-header">
+              <span>Backend Development</span>
+              <span class="percentage">75%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" style="width: 75%"></div>
+            </div>
+          </div>
+          <div class="skill-progress-item">
+            <div class="skill-progress-header">
+              <span>Game Modding</span>
+              <span class="percentage">85%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress" style="width: 85%"></div>
+            </div>
+          </div>
+        </div>
         <div class="skills-container">
           <div class="skill-category">
             <h3>Programming Languages</h3>
@@ -159,14 +216,20 @@
               <li>HTML</li>
               <li>CSS</li>
               <li>JavaScript</li>
+              <li>TypeScript</li>
               <li>C# (Modding, GPT-assisted)</li>
               <li>SQL (Basic)</li>
               <li>Python (Basic)</li>
             </ul>
           </div>
           <div class="skill-category">
-            <h3>Tools</h3>
+            <h3>Tools & Frameworks</h3>
             <ul class="skill-list">
+              <li>Next.js</li>
+              <li>React</li>
+              <li>Tailwind CSS</li>
+              <li>MongoDB</li>
+              <li>Stripe Integration</li>
               <li>Visual Studio Code</li>
               <li>Git & GitHub</li>
               <li>Prompt Engineering for GPT</li>
@@ -193,29 +256,7 @@
         <h2>Experience</h2>
         <div class="timeline">
           <div class="timeline-item">
-            <div class="timeline-date">Jan 2023 - Apr 2023</div>
-            <div class="timeline-content">
-              <h3>Beta Tester & Quality Assurance (QA) for WorldBox</h3>
-              <p class="company">
-                Official QA credited by Maxim Krupenko (WorldBox developer)
-              </p>
-              <ul>
-                <li>
-                  Beta tested WorldBox for major releases, especially the
-                  biggest updates
-                </li>
-                <li>
-                  Reported bugs, gameplay issues, and balancing problems
-                  directly to developers
-                </li>
-                <li>Contributed feedback on new features and modding APIs</li>
-                <li>Received an official in-game credit for QA work</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="timeline-item">
-            <div class="timeline-date">2023 - 2024</div>
+            <div class="timeline-date">Aug 2023 - Present</div>
             <div class="timeline-content">
               <h3>Game Mod Developer – WorldBox</h3>
               <p class="company">Independent Project</p>
@@ -241,7 +282,29 @@
           </div>
 
           <div class="timeline-item">
-            <div class="timeline-date">May 2023 - Jul 2023</div>
+            <div class="timeline-date">May 2023 - Aug 2023</div>
+            <div class="timeline-content">
+              <h3>Beta Tester & Quality Assurance (QA) for WorldBox</h3>
+              <p class="company">
+                Official QA credited by Maxim Krupenko (WorldBox developer)
+              </p>
+              <ul>
+                <li>
+                  Beta tested WorldBox for major releases, especially the
+                  biggest updates
+                </li>
+                <li>
+                  Reported bugs, gameplay issues, and balancing problems
+                  directly to developers
+                </li>
+                <li>Contributed feedback on new features and modding APIs</li>
+                <li>Received an official in-game credit for QA work</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="timeline-item">
+            <div class="timeline-date">Jan 2023 - Apr 2023</div>
             <div class="timeline-content">
               <h3>Data Analytics Virtual Internship</h3>
               <p class="company">
@@ -272,6 +335,108 @@
         <div class="projects-grid">
           <div class="project-card">
             <div class="project-content">
+              <div class="project-header">
+                <span class="project-status">Latest Project</span>
+                <h3>QuickCart E-commerce Platform</h3>
+                <p class="project-tags">
+                  Next.js 15, MongoDB, Tailwind CSS, Stripe
+                </p>
+              </div>
+
+              <!-- Project Image Gallery -->
+              <div class="project-gallery">
+                <div class="gallery-container">
+                  <div class="gallery-main">
+                    <img
+                      src="assets/projects/q1.png"
+                      alt="QuickCart Homepage"
+                      class="gallery-featured"
+                      loading="lazy"
+                    />
+                    <div class="gallery-nav">
+                      <button class="gallery-prev" aria-label="Previous image">
+                        <i class="fas fa-chevron-left"></i>
+                      </button>
+                      <button class="gallery-next" aria-label="Next image">
+                        <i class="fas fa-chevron-right"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="gallery-thumbnails">
+                    <img
+                      src="assets/projects/q1.png"
+                      alt="QuickCart Homepage"
+                      class="thumbnail active"
+                      loading="lazy"
+                    />
+                    <img
+                      src="assets/projects/q2.png"
+                      alt="QuickCart Product Page"
+                      class="thumbnail"
+                      loading="lazy"
+                    />
+                    <img
+                      src="assets/projects/q3.png"
+                      alt="QuickCart Checkout"
+                      class="thumbnail"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="project-details">
+                <h4>Key Features:</h4>
+                <ul class="feature-list">
+                  <li>
+                    <i class="fas fa-check"></i> User authentication with email
+                    verification
+                  </li>
+                  <li>
+                    <i class="fas fa-check"></i> Complete product management
+                    system
+                  </li>
+                  <li>
+                    <i class="fas fa-check"></i> Stripe payment integration
+                  </li>
+                  <li>
+                    <i class="fas fa-check"></i> Admin dashboard with analytics
+                  </li>
+                </ul>
+                <h4>Technical Highlights:</h4>
+                <ul class="tech-list">
+                  <li>
+                    <i class="fas fa-code-branch"></i> Next.js 15 with App
+                    Router
+                  </li>
+                  <li>
+                    <i class="fas fa-database"></i> MongoDB for data persistence
+                  </li>
+                  <li>
+                    <i class="fas fa-paint-brush"></i> Tailwind CSS for styling
+                  </li>
+                  <li>
+                    <i class="fas fa-shield-alt"></i> Secure payment processing
+                  </li>
+                </ul>
+              </div>
+              <div class="project-links">
+                <a
+                  href="https://quick-cart-five-psi.vercel.app/"
+                  class="btn btn-small btn-primary"
+                  target="_blank"
+                >
+                  <i class="fas fa-external-link-alt"></i> Live Demo
+                </a>
+                <a href="#" class="btn btn-small btn-secondary view-details">
+                  <i class="fas fa-info-circle"></i> View Details
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="project-card">
+            <div class="project-content">
               <h3>Unit Mod for WorldBox</h3>
               <p class="project-tags">Game Modding, C#, HarmonyLib</p>
               <p>
@@ -292,39 +457,77 @@
 
           <div class="project-card">
             <div class="project-content">
-              <h3>E-Commerce Website</h3>
-              <p class="project-tags">HTML, CSS, JavaScript</p>
-              <p>
-                Built a static e-commerce storefront as a hands-on web dev
-                exercise with responsive UI components and basic product
-                listings.
-              </p>
-              <div class="project-links">
-                <a
-                  href="https://github.com/prakash4820H/Ecommerce-Website"
-                  class="btn btn-small btn-primary"
-                  target="_blank"
-                  >GitHub Repo</a
-                >
+              <div class="project-header">
+                <h3>JPBABA E-Commerce Platform</h3>
+                <p class="project-tags">
+                  HTML5, CSS3, JavaScript (ES6+), CSS Grid, Flexbox
+                </p>
               </div>
-            </div>
-          </div>
 
-          <div class="project-card">
-            <div class="project-content">
-              <h3>Game Analytics Dashboard</h3>
-              <p class="project-tags">HTML, CSS, JavaScript</p>
-              <p>
-                Built a static dashboard web page with sample data, focused on
-                visualization/layout and front-end skills.
-              </p>
-              <div class="project-links">
-                <a
-                  href="https://github.com/prakash4820H/game-analytics-dashboard"
-                  class="btn btn-small btn-primary"
-                  target="_blank"
-                  >View Project</a
-                >
+              <!-- Project Image Gallery -->
+              <div class="project-gallery">
+                <div class="gallery-container">
+                  <div class="gallery-main">
+                    <img
+                      src="assets/projects/j1.png"
+                      alt="JPBABA Homepage"
+                      class="gallery-featured"
+                      loading="lazy"
+                    />
+                    <div class="gallery-nav">
+                      <button class="gallery-prev" aria-label="Previous image">
+                        <i class="fas fa-chevron-left"></i>
+                      </button>
+                      <button class="gallery-next" aria-label="Next image">
+                        <i class="fas fa-chevron-right"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="gallery-thumbnails">
+                    <img
+                      src="assets/projects/j1.png"
+                      alt="JPBABA Homepage"
+                      class="thumbnail active"
+                      loading="lazy"
+                    />
+                    <img
+                      src="assets/projects/j2.png"
+                      alt="JPBABA Products"
+                      class="thumbnail"
+                      loading="lazy"
+                    />
+                    <img
+                      src="assets/projects/j3.png"
+                      alt="JPBABA Cart"
+                      class="thumbnail"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="project-details">
+                <p>
+                  A modern, fully responsive e-commerce platform featuring
+                  product catalog, shopping cart with local storage persistence,
+                  user authentication, and comprehensive product management
+                  system. Implements modern design patterns and best practices
+                  for web development.
+                </p>
+                <div class="project-links">
+                  <a
+                    href="https://prakash4820h.github.io/Ecommerce-Website-1/"
+                    class="btn btn-small btn-primary"
+                    target="_blank"
+                    >Live Demo</a
+                  >
+                  <a
+                    href="https://github.com/prakash4820H/Ecommerce-Website-1"
+                    class="btn btn-small btn-secondary"
+                    target="_blank"
+                    >GitHub Repo</a
+                  >
+                </div>
               </div>
             </div>
           </div>
@@ -351,6 +554,57 @@
               <li>Azure AI Fundamentals (AI-900)</li>
             </ul>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="blog" class="section bg-light">
+      <div class="container">
+        <h2>Technical Blog</h2>
+        <div class="blog-grid">
+          <article class="blog-card">
+            <div class="blog-content">
+              <div class="blog-category">E-commerce Development</div>
+              <h3>
+                Building a Modern E-commerce Platform with Next.js and MongoDB
+              </h3>
+              <p>
+                A deep dive into the development of QuickCart, exploring the
+                technical decisions, challenges faced, and solutions implemented
+                in creating a modern e-commerce platform.
+              </p>
+              <div class="blog-meta">
+                <span><i class="fas fa-calendar"></i> June 2024</span>
+                <span><i class="fas fa-clock"></i> 10 min read</span>
+              </div>
+              <a
+                href="blog/building-modern-ecommerce.html"
+                class="btn btn-small btn-primary"
+                >Read More</a
+              >
+            </div>
+          </article>
+
+          <article class="blog-card">
+            <div class="blog-content">
+              <div class="blog-category">Web Development</div>
+              <h3>Implementing Responsive Design with Modern CSS</h3>
+              <p>
+                A comprehensive guide to creating responsive layouts using CSS
+                Grid, Flexbox, and modern CSS features. Learn best practices and
+                advanced techniques for building flexible web designs.
+              </p>
+              <div class="blog-meta">
+                <span><i class="fas fa-calendar"></i> February 2024</span>
+                <span><i class="fas fa-clock"></i> 12 min read</span>
+              </div>
+              <a
+                href="blog/implementing-responsive-design.html"
+                class="btn btn-small btn-primary"
+                >Read More</a
+              >
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -424,6 +678,44 @@
         <p>&copy; 2024 Jaya Prakash Pinninti. All rights reserved.</p>
       </div>
     </footer>
+
+    <!-- Project Demo Modal -->
+    <div class="modal" id="project-modal">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div class="modal-header">
+          <h3 class="modal-title"></h3>
+          <div class="tech-stack"></div>
+        </div>
+        <div class="modal-body">
+          <div class="project-details-grid">
+            <div class="project-overview">
+              <h4>Project Overview</h4>
+              <p class="overview-text"></p>
+            </div>
+            <div class="project-challenges">
+              <h4>Technical Challenges</h4>
+              <ul class="challenges-list"></ul>
+            </div>
+            <div class="project-solutions">
+              <h4>Solutions & Learnings</h4>
+              <ul class="solutions-list"></ul>
+            </div>
+            <div class="project-tech-details">
+              <h4>Technical Details</h4>
+              <ul class="tech-details-list"></ul>
+            </div>
+          </div>
+          <div class="live-demo-container">
+            <iframe class="demo-frame" frameborder="0"></iframe>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <a href="#" class="btn btn-primary view-live">View Live Site</a>
+          <a href="#" class="btn btn-secondary view-code">View Code</a>
+        </div>
+      </div>
+    </div>
 
     <script src="script.js"></script>
   </body>

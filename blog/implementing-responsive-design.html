@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Implementing Responsive Design with Modern CSS | Jaya Prakash</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+    <link rel="stylesheet" href="blog.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="navbar">
+        <a href="../index.html" class="nav-brand">Jaya Prakash</a>
+        <ul class="nav-menu">
+          <li><a href="../index.html#about">About</a></li>
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../index.html#blog">Blog</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="blog-post">
+      <article>
+        <header class="blog-header">
+          <h1 data-text="Implementing Responsive Design with Modern CSS">
+            Implementing Responsive Design with Modern CSS
+          </h1>
+          <div class="blog-meta">
+            <span><i class="fas fa-calendar"></i> February 15, 2024</span>
+            <span><i class="fas fa-clock"></i> 12 min read</span>
+            <span><i class="fas fa-tag"></i> Web Development</span>
+          </div>
+        </header>
+
+        <div class="blog-content">
+          <h2>Introduction</h2>
+          <p>
+            Modern web development demands responsive designs that work
+            seamlessly across all devices. In this comprehensive guide, we'll
+            explore how to create fluid and responsive layouts using CSS Grid,
+            Flexbox, and other modern CSS features.
+          </p>
+
+          <h2>Understanding CSS Grid</h2>
+          <p>
+            CSS Grid is a powerful tool for creating two-dimensional layouts.
+            Here's a basic example of a responsive grid:
+          </p>
+          <pre><code>
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.grid-item {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+          </code></pre>
+
+          <h2>Mastering Flexbox</h2>
+          <p>
+            Flexbox is perfect for one-dimensional layouts and component
+            alignment:
+          </p>
+          <pre><code>
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.flex-item {
+  flex: 1 1 300px;
+  max-width: 100%;
+}
+          </code></pre>
+
+          <h2>Modern CSS Features</h2>
+          <h3>1. CSS Custom Properties</h3>
+          <p>Variables make your CSS more maintainable and dynamic:</p>
+          <pre><code>
+:root {
+  --primary-color: #2563eb;
+  --spacing-unit: 1rem;
+  --max-width: 1200px;
+}
+
+.container {
+  max-width: var(--max-width);
+  padding: var(--spacing-unit);
+  color: var(--primary-color);
+}
+          </code></pre>
+
+          <h3>2. Media Queries</h3>
+          <p>
+            Modern approaches to media queries for better responsive design:
+          </p>
+          <pre><code>
+/* Mobile First Approach */
+.container {
+  width: 100%;
+  padding: 1rem;
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+    padding: 2rem;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 960px;
+  }
+}
+          </code></pre>
+
+          <h2>Best Practices for Responsive Design</h2>
+          <ul>
+            <li>Start with a mobile-first approach</li>
+            <li>Use relative units (rem, em, %) instead of fixed units</li>
+            <li>Implement fluid typography with clamp()</li>
+            <li>Test across different devices and browsers</li>
+            <li>Consider accessibility in your responsive design</li>
+          </ul>
+
+          <h2>Advanced Techniques</h2>
+          <h3>Fluid Typography</h3>
+          <pre><code>
+html {
+  font-size: clamp(16px, 1vw + 0.5rem, 20px);
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw + 1rem, 4rem);
+}
+          </code></pre>
+
+          <h3>Container Queries</h3>
+          <p>The future of responsive design with container queries:</p>
+          <pre><code>
+@container (min-width: 400px) {
+  .card {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+  }
+}
+          </code></pre>
+
+          <h2>Conclusion</h2>
+          <p>
+            Modern CSS provides powerful tools for creating responsive designs.
+            By combining CSS Grid, Flexbox, and modern features like custom
+            properties and container queries, we can build flexible and
+            maintainable layouts that work across all devices.
+          </p>
+
+          <div class="blog-footer">
+            <div class="share-buttons">
+              <a
+                href="https://twitter.com/share?url=https://jayaprakash.dev/blog/implementing-responsive-design.html"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i class="fab fa-twitter"></i> Share on Twitter
+              </a>
+              <a
+                href="https://www.linkedin.com/shareArticle?url=https://jayaprakash.dev/blog/implementing-responsive-design.html"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i class="fab fa-linkedin"></i> Share on LinkedIn
+              </a>
+            </div>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-content">
+        <p>&copy; 2024 Jaya Prakash. All rights reserved.</p>
+        <div class="social-links">
+          <a
+            href="https://github.com/prakash4820H"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fab fa-github"></i>
+          </a>
+          <a
+            href="https://linkedin.com/in/jaya-prakash-pinninti"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fab fa-linkedin"></i>
+          </a>
+          <a
+            href="https://twitter.com/yourusername"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fab fa-twitter"></i>
+          </a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

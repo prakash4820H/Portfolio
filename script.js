@@ -297,4 +297,85 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update on scroll
   window.addEventListener("scroll", updateScrollProgress);
+
+  // Project Gallery Functionality
+  function initializeGalleries() {
+    document.querySelectorAll(".project-gallery").forEach((gallery) => {
+      const featured = gallery.querySelector(".gallery-featured");
+      const thumbnails = gallery.querySelectorAll(".thumbnail");
+      const prevBtn = gallery.querySelector(".gallery-prev");
+      const nextBtn = gallery.querySelector(".gallery-next");
+      let currentIndex = 0;
+
+      // Function to update the featured image
+      function updateFeatured(index) {
+        const newSrc = thumbnails[index].src;
+        const newAlt = thumbnails[index].alt;
+
+        // Add fade-out class
+        featured.style.opacity = "0";
+
+        // Change image after fade out
+        setTimeout(() => {
+          featured.src = newSrc;
+          featured.alt = newAlt;
+          featured.style.opacity = "1";
+        }, 200);
+
+        // Update active thumbnail
+        thumbnails.forEach((thumb) => thumb.classList.remove("active"));
+        thumbnails[index].classList.add("active");
+
+        currentIndex = index;
+      }
+
+      // Event listeners for thumbnails
+      thumbnails.forEach((thumbnail, index) => {
+        thumbnail.addEventListener("click", () => updateFeatured(index));
+      });
+
+      // Previous button click
+      prevBtn.addEventListener("click", () => {
+        currentIndex =
+          (currentIndex - 1 + thumbnails.length) % thumbnails.length;
+        updateFeatured(currentIndex);
+      });
+
+      // Next button click
+      nextBtn.addEventListener("click", () => {
+        currentIndex = (currentIndex + 1) % thumbnails.length;
+        updateFeatured(currentIndex);
+      });
+
+      // Keyboard navigation
+      gallery.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowLeft") prevBtn.click();
+        if (e.key === "ArrowRight") nextBtn.click();
+      });
+
+      // Auto-advance every 5 seconds if not interacted with recently
+      let autoAdvanceTimer;
+      const startAutoAdvance = () => {
+        autoAdvanceTimer = setInterval(() => {
+          nextBtn.click();
+        }, 5000);
+      };
+
+      const stopAutoAdvance = () => {
+        clearInterval(autoAdvanceTimer);
+      };
+
+      // Start auto-advance
+      startAutoAdvance();
+
+      // Stop auto-advance on interaction
+      gallery.addEventListener("mouseenter", stopAutoAdvance);
+      gallery.addEventListener("mouseleave", startAutoAdvance);
+      gallery.addEventListener("touchstart", stopAutoAdvance);
+      gallery.addEventListener("touchend", startAutoAdvance);
+    });
+  }
+
+  // Initialize galleries when DOM is loaded
+  initializeGalleries();
 });

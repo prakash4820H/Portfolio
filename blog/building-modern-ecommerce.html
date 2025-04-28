@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Building a Modern E-commerce Platform with Next.js and MongoDB | Jaya Prakash
+    </title>
+    <link rel="stylesheet" href="../styles/main.css" />
+    <link rel="stylesheet" href="blog.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="navbar">
+        <a href="../index.html" class="nav-brand">Jaya Prakash</a>
+        <ul class="nav-menu">
+          <li><a href="../index.html#about">About</a></li>
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../index.html#blog">Blog</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="blog-post">
+      <article>
+        <header class="blog-header">
+          <h1 data-text="Building a Modern E-commerce Platform with Next.js and MongoDB">Building a Modern E-commerce Platform with Next.js and MongoDB</h1>
+          <div class="blog-meta">
+            <span><i class="fas fa-calendar"></i> June 15, 2024</span>
+            <span><i class="fas fa-clock"></i> 10 min read</span>
+            <span><i class="fas fa-tag"></i> E-commerce Development</span>
+          </div>
+        </header>
+
+        <div class="blog-content">
+          <h2>Introduction</h2>
+          <p>
+            In this comprehensive guide, I'll walk you through the development process of QuickCart, 
+            a modern e-commerce platform built with Next.js and MongoDB. We'll explore the technical 
+            decisions made, challenges encountered, and solutions implemented to create a scalable 
+            and performant online shopping experience.
+          </p>
+
+          <h2>Why Next.js and MongoDB?</h2>
+          <p>
+            The decision to use Next.js was driven by several key factors:
+          </p>
+          <ul>
+            <li>Server-side rendering capabilities for improved SEO</li>
+            <li>Built-in API routes for backend functionality</li>
+            <li>Excellent developer experience with hot reloading</li>
+            <li>Strong TypeScript support</li>
+          </ul>
+          <p>
+            MongoDB was chosen as our database solution because:
+          </p>
+          <ul>
+            <li>Flexible schema design for varying product types</li>
+            <li>Powerful aggregation pipeline for complex queries</li>
+            <li>Excellent scaling capabilities</li>
+            <li>Rich ecosystem of tools and libraries</li>
+          </ul>
+
+          <h2>Key Features Implemented</h2>
+          <h3>1. Product Catalog Management</h3>
+          <p>
+            The product catalog system was built with flexibility in mind. Here's a simplified version 
+            of our product schema:
+          </p>
+          <pre><code>
+interface Product {
+    _id: ObjectId;
+    name: string;
+    description: string;
+    price: number;
+    categories: string[];
+    variants: ProductVariant[];
+    images: string[];
+    inventory: number;
+    metadata: Record<string, any>;
+}
+          </code></pre>
+
+          <h3>2. Shopping Cart Implementation</h3>
+          <p>
+            We implemented a persistent shopping cart using Next.js API routes and MongoDB, 
+            allowing users to maintain their cart across sessions. The cart data is stored 
+            both client-side (localStorage) and server-side for optimal performance and reliability.
+          </p>
+
+          <h3>3. Search and Filtering</h3>
+          <p>
+            The search functionality was implemented using MongoDB's text search capabilities 
+            and enhanced with custom filtering options. We used debouncing for search queries 
+            and implemented server-side pagination for better performance.
+          </p>
+
+          <h2>Performance Optimizations</h2>
+          <p>
+            Several optimizations were implemented to ensure the platform performs well:
+          </p>
+          <ul>
+            <li>Image optimization using Next.js Image component</li>
+            <li>Implementing stale-while-revalidate caching strategy</li>
+            <li>Code splitting and lazy loading of components</li>
+            <li>MongoDB query optimization and indexing</li>
+          </ul>
+
+          <h2>Challenges and Solutions</h2>
+          <h3>1. Cart Synchronization</h3>
+          <p>
+            One of the main challenges was keeping the cart synchronized between multiple 
+            tabs and devices. We solved this using a combination of WebSocket connections 
+            for real-time updates and a robust conflict resolution strategy.
+          </p>
+
+          <h3>2. Payment Integration</h3>
+          <p>
+            Integrating payment processing while ensuring security and compliance was complex. 
+            We implemented Stripe's payment system using their official SDK and followed best 
+            practices for handling sensitive payment data.
+          </p>
+
+          <h2>Conclusion</h2>
+          <p>
+            Building QuickCart was an exciting journey that taught us valuable lessons about 
+            modern web development. The combination of Next.js and MongoDB proved to be powerful 
+            and flexible, allowing us to create a robust e-commerce platform that can scale 
+            with our needs.
+          </p>
+
+          <div class="blog-footer">
+            <div class="share-buttons">
+              <a href="https://twitter.com/share?url=https://jayaprakash.dev/blog/building-modern-ecommerce.html" 
+                 target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-twitter"></i> Share on Twitter
+              </a>
+              <a href="https://www.linkedin.com/shareArticle?url=https://jayaprakash.dev/blog/building-modern-ecommerce.html" 
+                 target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-linkedin"></i> Share on LinkedIn
+              </a>
+            </div>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-content">
+        <p>&copy; 2024 Jaya Prakash. All rights reserved.</p>
+        <div class="social-links">
+          <a href="https://github.com/prakash4820H" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-github"></i>
+          </a>
+          <a href="https://linkedin.com/in/jaya-prakash-pinninti" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-linkedin"></i>
+          </a>
+          <a href="https://twitter.com/yourusername" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-twitter"></i>
+          </a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
