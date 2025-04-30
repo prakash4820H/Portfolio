@@ -3295,30 +3295,68 @@ document.addEventListener("DOMContentLoaded", function () {
       face.style.backfaceVisibility = "visible";
 
       // Speech bubble for 3D effect
-      speak("Whoa! I'm 3D now! 🌐");
+      speak("Whoa! I'm truly spherical! Watch me spin in 3D! 🌐");
 
-      // Start continuous slow rotation for 3D effect
+      // Start continuous rotation with multiple axes for more dynamic effect
+      let rotateX = 0;
       let rotateY = 0;
+      let rotateZ = 0;
+      let time = 0;
+
       rotationInterval = setInterval(() => {
+        time += 0.03;
+
+        // Create more interesting rotation patterns using sine waves
+        rotateX = 20 * Math.sin(time * 0.5);
         rotateY += 2;
         if (rotateY >= 360) rotateY = 0;
+        rotateZ = 10 * Math.sin(time * 0.7);
 
-        // Apply rotation transformation
-        const rotation = `rotateY(${rotateY}deg)`;
+        // Apply rotation transformation with multiple axes
+        const rotation = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
         character.style.transform = rotation;
 
         // Dynamically adjust lighting based on angle for more 3D effect
         const highlightOpacity = 0.7 - Math.abs(rotateY - 180) / 360;
         highlight.style.opacity = Math.max(0.2, highlightOpacity).toString();
 
-        // Adjust the pupils based on rotation to maintain "face forward" look
-        const eyeShiftX = Math.sin((rotateY * Math.PI) / 180) * 4;
-        leftPupil.style.transform = `translateX(${-eyeShiftX}px)`;
-        rightPupil.style.transform = `translateX(${-eyeShiftX}px)`;
+        // Move highlight position based on rotation to simulate light source
+        const highlightX = 30 + 20 * Math.sin((rotateY * Math.PI) / 180);
+        const highlightY = 20 + 15 * Math.sin((rotateX * Math.PI) / 180);
+        highlight.style.left = `${highlightX}px`;
+        highlight.style.top = `${highlightY}px`;
 
-        // Adjust the face perspective
-        const faceScaleX = 0.8 + 0.2 * Math.cos((rotateY * Math.PI) / 180);
-        face.style.transform = `scaleX(${faceScaleX})`;
+        // For more realistic 3D effect, sometimes hide the face when rotating away from viewer
+        if (rotateY > 90 && rotateY < 270) {
+          // Back side of sphere, face should be hidden or minimized
+          face.style.opacity = Math.max(
+            0.1,
+            1 - Math.sin(((rotateY - 90) * Math.PI) / 180)
+          ).toString();
+          face.style.transform = `scaleX(${
+            0.5 + 0.3 * Math.cos((rotateY * Math.PI) / 180)
+          }) scaleY(${0.7 + 0.3 * Math.cos((rotateY * Math.PI) / 180)})`;
+        } else {
+          // Front side of sphere, face fully visible
+          face.style.opacity = "1";
+          face.style.transform = `scaleX(${
+            0.8 + 0.2 * Math.cos((rotateY * Math.PI) / 180)
+          }) scaleY(1)`;
+        }
+
+        // Add occasional wobble for more playful effect
+        if (Math.random() < 0.01) {
+          const wobbleX = Math.random() * 40 - 20;
+          const wobbleY = Math.random() * 40 - 20;
+          character.style.transform += ` translate(${wobbleX}px, ${wobbleY}px)`;
+
+          // Quick bounce back
+          setTimeout(() => {
+            if (isRotating) {
+              character.style.transform = rotation;
+            }
+          }, 150);
+        }
       }, 30);
     } else {
       // Stop rotating
@@ -3331,13 +3369,61 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Reset to original position
       character.style.transform = "none";
-      leftPupil.style.transform = "none";
-      rightPupil.style.transform = "none";
       face.style.transform = "none";
+      face.style.opacity = "1";
       highlight.style.opacity = "0.7";
+      highlight.style.left = "30px";
+      highlight.style.top = "20px";
 
-      speak("Back to normal mode!");
+      speak("Back to normal mode! That was fun!");
     }
+  });
+
+  // Add a "crazy mode" double-click on the 3D button
+  rotateButton.addEventListener("dblclick", function (e) {
+    e.stopPropagation();
+
+    // Always reset first
+    if (isRotating) {
+      clearInterval(rotationInterval);
+    }
+
+    // Set to rotating state
+    isRotating = true;
+    rotateButton.textContent = "STOP!";
+    rotateButton.style.backgroundColor = "#ff1744";
+
+    speak("WOOOAAAAH! I'm going CRAZY! 🤪");
+
+    // Extreme 3D madness mode with rapid unpredictable rotations
+    let time = 0;
+    rotationInterval = setInterval(() => {
+      time += 0.1;
+
+      // Chaotic rotations using complex sine/cosine combinations
+      const rotateX = 180 * Math.sin(time * 1.2) * Math.cos(time * 0.5);
+      const rotateY = 180 * Math.sin(time) * Math.cos(time * 0.8);
+      const rotateZ = 90 * Math.sin(time * 0.7);
+
+      // Apply wild rotation
+      const rotation = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
+      character.style.transform = rotation;
+
+      // Random scaling for pulsing effect
+      const scale = 0.8 + 0.4 * Math.sin(time * 2);
+      character.style.transform += ` scale(${scale})`;
+
+      // Radomly move highlight for chaotic lighting
+      highlight.style.opacity = Math.random().toString();
+      highlight.style.left = `${Math.random() * 100}px`;
+      highlight.style.top = `${Math.random() * 100}px`;
+
+      // Make face go wild too
+      face.style.opacity = 0.3 + 0.7 * Math.random();
+      face.style.transform = `scaleX(${0.5 + Math.random()}) scaleY(${
+        0.5 + Math.random()
+      })`;
+    }, 40);
   });
 
   character.appendChild(rotateButton);
