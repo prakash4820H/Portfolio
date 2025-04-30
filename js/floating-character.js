@@ -11,19 +11,52 @@ document.addEventListener("DOMContentLoaded", function () {
     width: "130px",
     height: "130px",
     borderRadius: "55%", // Slightly more egg-shaped for cuteness
-    background: "radial-gradient(circle at 30% 25%, #c8fbf2, #a5f3e9, #8de2d9)", // Enhanced gradient
+    background: "radial-gradient(circle at 30% 25%, #d9fcf7, #a5f3e9, #79d0c7)", // Enhanced 3D gradient
     boxShadow:
-      "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)",
+      "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -20px 30px rgba(255, 255, 255, 0.7), inset 20px -20px 30px rgba(0, 0, 0, 0.1)",
     zIndex: "9999",
     top: "150px",
     left: "100px",
     pointerEvents: "none",
     transition:
-      "transform 0.1s ease-out, background 0.5s ease, filter 0.3s ease, box-shadow 0.3s ease",
+      "transform 0.5s ease-out, background 0.5s ease, filter 0.3s ease, box-shadow 0.3s ease, perspective 0.5s ease",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     filter: "drop-shadow(0 8px 20px rgba(141, 226, 217, 0.3))",
+    perspective: "800px",
+    transformStyle: "preserve-3d",
+  });
+
+  // Create a highlight shine effect for 3D appearance
+  const highlight = document.createElement("div");
+  highlight.className = "blob-highlight";
+  Object.assign(highlight.style, {
+    position: "absolute",
+    width: "40px",
+    height: "40px",
+    background:
+      "radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)",
+    borderRadius: "50%",
+    top: "20px",
+    left: "30px",
+    pointerEvents: "none",
+    zIndex: "1",
+    opacity: "0.7",
+  });
+
+  // Create surface texture for more depth
+  const texture = document.createElement("div");
+  texture.className = "blob-texture";
+  Object.assign(texture.style, {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    background:
+      "radial-gradient(circle at 60% 60%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.03) 80%)",
+    borderRadius: "55%",
+    pointerEvents: "none",
+    zIndex: "1",
   });
 
   // Create the face
@@ -220,6 +253,10 @@ document.addEventListener("DOMContentLoaded", function () {
   face.appendChild(rightCheek);
   face.appendChild(mouthContainer);
   character.appendChild(face);
+
+  // Add our new 3D elements
+  character.appendChild(texture);
+  character.appendChild(highlight);
 
   // Create speech bubble for chat functionality
   const speechBubble = document.createElement("div");
@@ -548,49 +585,77 @@ document.addEventListener("DOMContentLoaded", function () {
     const extraEyes = character.querySelectorAll(".extra-eye");
     extraEyes.forEach((eye) => eye.remove());
 
-    // Add subtle shadow adjustment for each mood
+    // Update 3D highlight and texture based on mood
     switch (expression) {
       case "happy":
         character.style.boxShadow =
-          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -20px 30px rgba(255, 255, 255, 0.7), inset 20px -20px 30px rgba(0, 0, 0, 0.1)";
         character.style.filter =
           "drop-shadow(0 8px 20px rgba(141, 226, 217, 0.3))";
+        highlight.style.background =
+          "radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)";
+        texture.style.background =
+          "radial-gradient(circle at 60% 60%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.03) 80%)";
         break;
       case "surprised":
         character.style.boxShadow =
-          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+          "0 10px 25px rgba(0, 0, 0, 0.15), inset 0 -20px 30px rgba(255, 255, 255, 0.6), inset 20px -20px 30px rgba(0, 0, 0, 0.12)";
         character.style.filter =
           "drop-shadow(0 8px 20px rgba(255, 190, 208, 0.4))";
+        highlight.style.background =
+          "radial-gradient(circle at center, rgba(255,220,220,0.8) 0%, rgba(255,255,255,0) 70%)";
+        texture.style.background =
+          "radial-gradient(circle at 60% 60%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.05) 80%)";
         break;
       case "excited":
         character.style.boxShadow =
-          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -20px 30px rgba(255, 255, 255, 0.8), inset 20px -20px 30px rgba(0, 0, 0, 0.08)";
         character.style.filter =
           "drop-shadow(0 8px 20px rgba(184, 240, 144, 0.4))";
+        highlight.style.background =
+          "radial-gradient(circle at center, rgba(220,255,220,0.8) 0%, rgba(255,255,255,0) 70%)";
+        texture.style.background =
+          "radial-gradient(circle at 60% 60%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.03) 80%)";
         break;
       case "sleepy":
         character.style.boxShadow =
-          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.5), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -20px 25px rgba(255, 255, 255, 0.5), inset 20px -20px 30px rgba(0, 0, 0, 0.1)";
         character.style.filter =
           "drop-shadow(0 8px 15px rgba(196, 178, 245, 0.3))";
+        highlight.style.background =
+          "radial-gradient(circle at center, rgba(220,220,255,0.6) 0%, rgba(255,255,255,0) 70%)";
+        texture.style.background =
+          "radial-gradient(circle at 60% 60%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.04) 80%)";
         break;
       case "uwu":
         character.style.boxShadow =
-          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -20px 30px rgba(255, 255, 255, 0.7), inset 20px -20px 30px rgba(0, 0, 0, 0.1)";
         character.style.filter =
           "drop-shadow(0 8px 20px rgba(255, 184, 189, 0.4))";
+        highlight.style.background =
+          "radial-gradient(circle at center, rgba(255,220,225,0.8) 0%, rgba(255,255,255,0) 70%)";
+        texture.style.background =
+          "radial-gradient(circle at 60% 60%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.03) 80%)";
         break;
       case "bouncy":
         character.style.boxShadow =
-          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.8), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -20px 30px rgba(255, 255, 255, 0.8), inset 20px -20px 30px rgba(0, 0, 0, 0.07)";
         character.style.filter =
           "drop-shadow(0 8px 25px rgba(160, 216, 255, 0.5))";
+        highlight.style.background =
+          "radial-gradient(circle at center, rgba(210,235,255,0.8) 0%, rgba(255,255,255,0) 70%)";
+        texture.style.background =
+          "radial-gradient(circle at 60% 60%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.02) 80%)";
         break;
       case "spooky":
         character.style.boxShadow =
-          "0 10px 25px rgba(0, 0, 0, 0.2), inset 0 -10px 15px rgba(255, 255, 255, 0.4), inset 5px -5px 15px rgba(0, 0, 0, 0.1)";
+          "0 10px 25px rgba(0, 0, 0, 0.3), inset 0 -20px 30px rgba(255, 255, 255, 0.3), inset 20px -20px 30px rgba(0, 0, 0, 0.2)";
         character.style.filter =
           "drop-shadow(0 8px 20px rgba(134, 121, 174, 0.5))";
+        highlight.style.background =
+          "radial-gradient(circle at center, rgba(200,180,255,0.5) 0%, rgba(255,255,255,0) 70%)";
+        texture.style.background =
+          "radial-gradient(circle at 60% 60%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.08) 80%)";
         break;
     }
 
@@ -3190,4 +3255,90 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Run translation initialization
   initializeTranslations();
+
+  // Add 3D rotation toggle button
+  const rotateButton = document.createElement("button");
+  rotateButton.id = "rotate-blob";
+  rotateButton.textContent = "3D";
+  Object.assign(rotateButton.style, {
+    position: "absolute",
+    bottom: "-15px",
+    right: "-15px",
+    width: "30px",
+    height: "30px",
+    backgroundColor: "#4fc3f7",
+    color: "white",
+    border: "none",
+    borderRadius: "50%",
+    fontSize: "12px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    zIndex: "10000",
+    pointerEvents: "auto",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+  });
+
+  // Add 3D rotation functionality
+  let isRotating = false;
+  let rotationInterval;
+
+  rotateButton.addEventListener("click", function (e) {
+    e.stopPropagation();
+
+    if (!isRotating) {
+      // Start rotating
+      isRotating = true;
+      rotateButton.textContent = "2D";
+      rotateButton.style.backgroundColor = "#f44336";
+
+      // Make sure the face is visible during rotation
+      face.style.backfaceVisibility = "visible";
+
+      // Speech bubble for 3D effect
+      speak("Whoa! I'm 3D now! 🌐");
+
+      // Start continuous slow rotation for 3D effect
+      let rotateY = 0;
+      rotationInterval = setInterval(() => {
+        rotateY += 2;
+        if (rotateY >= 360) rotateY = 0;
+
+        // Apply rotation transformation
+        const rotation = `rotateY(${rotateY}deg)`;
+        character.style.transform = rotation;
+
+        // Dynamically adjust lighting based on angle for more 3D effect
+        const highlightOpacity = 0.7 - Math.abs(rotateY - 180) / 360;
+        highlight.style.opacity = Math.max(0.2, highlightOpacity).toString();
+
+        // Adjust the pupils based on rotation to maintain "face forward" look
+        const eyeShiftX = Math.sin((rotateY * Math.PI) / 180) * 4;
+        leftPupil.style.transform = `translateX(${-eyeShiftX}px)`;
+        rightPupil.style.transform = `translateX(${-eyeShiftX}px)`;
+
+        // Adjust the face perspective
+        const faceScaleX = 0.8 + 0.2 * Math.cos((rotateY * Math.PI) / 180);
+        face.style.transform = `scaleX(${faceScaleX})`;
+      }, 30);
+    } else {
+      // Stop rotating
+      isRotating = false;
+      rotateButton.textContent = "3D";
+      rotateButton.style.backgroundColor = "#4fc3f7";
+
+      // Clear the rotation interval
+      clearInterval(rotationInterval);
+
+      // Reset to original position
+      character.style.transform = "none";
+      leftPupil.style.transform = "none";
+      rightPupil.style.transform = "none";
+      face.style.transform = "none";
+      highlight.style.opacity = "0.7";
+
+      speak("Back to normal mode!");
+    }
+  });
+
+  character.appendChild(rotateButton);
 });
