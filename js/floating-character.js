@@ -11,19 +11,19 @@ document.addEventListener("DOMContentLoaded", function () {
     width: "130px",
     height: "130px",
     borderRadius: "55%", // Slightly more egg-shaped for cuteness
-    background: "radial-gradient(circle at 30% 30%, #b5f9ef, #a5f3e9, #8de2d9)", // Gradient for 3D effect
+    background: "radial-gradient(circle at 30% 25%, #c8fbf2, #a5f3e9, #8de2d9)", // Enhanced gradient
     boxShadow:
-      "0 0 20px rgba(165, 243, 233, 0.6), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 2px -2px 7px rgba(0, 0, 0, 0.1)",
+      "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)",
     zIndex: "9999",
     top: "150px",
     left: "100px",
     pointerEvents: "none",
     transition:
-      "transform 0.1s ease-out, background 0.5s ease, filter 0.3s ease",
+      "transform 0.1s ease-out, background 0.5s ease, filter 0.3s ease, box-shadow 0.3s ease",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    filter: "drop-shadow(0 5px 15px rgba(0, 0, 0, 0.1))",
+    filter: "drop-shadow(0 8px 20px rgba(141, 226, 217, 0.3))",
   });
 
   // Create the face
@@ -220,6 +220,49 @@ document.addEventListener("DOMContentLoaded", function () {
   face.appendChild(rightCheek);
   face.appendChild(mouthContainer);
   character.appendChild(face);
+
+  // Create speech bubble for chat functionality
+  const speechBubble = document.createElement("div");
+  speechBubble.className = "blob-speech-bubble";
+  Object.assign(speechBubble.style, {
+    position: "absolute",
+    backgroundColor: "white",
+    borderRadius: "20px",
+    padding: "12px 18px",
+    boxShadow: "0 5px 15px rgba(0, 0, 0, 0.1), 0 3px 5px rgba(0, 0, 0, 0.05)",
+    maxWidth: "220px",
+    fontFamily: "'Nunito', 'Segoe UI', Arial, sans-serif",
+    fontSize: "14px",
+    fontWeight: "500",
+    color: "#333",
+    top: "-85px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    opacity: "0",
+    transition: "opacity 0.3s ease, transform 0.2s ease",
+    pointerEvents: "none",
+    zIndex: "10000",
+    textAlign: "center",
+    lineHeight: "1.4",
+    border: "2px solid #8de2d9",
+  });
+
+  // Create speech bubble arrow/tail
+  const speechBubbleTail = document.createElement("div");
+  Object.assign(speechBubbleTail.style, {
+    position: "absolute",
+    bottom: "-11px",
+    left: "50%",
+    marginLeft: "-10px",
+    borderWidth: "10px 10px 0",
+    borderStyle: "solid",
+    borderColor: "white transparent transparent",
+    filter: "drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1))",
+    zIndex: "1",
+  });
+
+  speechBubble.appendChild(speechBubbleTail);
+  character.appendChild(speechBubble);
   document.body.appendChild(character);
 
   // Variables for animation
@@ -232,6 +275,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let clicked = false;
   let hovered = false;
   let isFollowingCursor = false;
+  let positionRelativeToViewport = true; // New flag to control positioning behavior
 
   // Variables for independent movement
   let isExploring = false;
@@ -251,6 +295,100 @@ document.addEventListener("DOMContentLoaded", function () {
   let transitionProgress = 0;
   let transitionDuration = 1000; // ms
 
+  // Variables for delayed eye movement
+  let targetPupilX = 8;
+  let targetPupilY = 8;
+  let currentPupilX = 8;
+  let currentPupilY = 8;
+  let eyeMovementDelay = 0.07; // Lower values = faster eye movement
+
+  // Variables for speech/chat functionality
+  let isSpeaking = false;
+  let speechTimer = null;
+  let lastVisitedSection = "";
+
+  // Section-specific messages
+  const sectionMessages = {
+    about: [
+      "That's me! I'm a web developer, game modder, and QA tester!",
+      "I studied at KL University in India!",
+      "I love creating websites and game mods!",
+      "Want to know more about me?",
+    ],
+    skills: [
+      "Check out my skills! Pretty cool, right?",
+      "I'm great at frontend development!",
+      "I use AI tools to boost my coding efficiency!",
+      "I've worked with React, Next.js, and more!",
+    ],
+    experience: [
+      "Here's my work experience!",
+      "I've worked on WorldBox modding!",
+      "I was a QA tester for WorldBox!",
+      "I had a data analytics internship too!",
+    ],
+    projects: [
+      "These are my favorite projects!",
+      "Check out my e-commerce projects!",
+      "I made a unit mod for WorldBox!",
+      "Want to see more? Check my GitHub!",
+    ],
+    certifications: [
+      "I've got certifications in AWS and Azure!",
+      "These certifications show my technical knowledge!",
+      "I'm continuously learning new skills!",
+    ],
+    blog: [
+      "Read my technical blog posts!",
+      "I write about web development and more!",
+      "Want to learn about e-commerce development?",
+    ],
+    contact: [
+      "Want to get in touch? Contact me here!",
+      "I'd love to hear from you!",
+      "Send me a message, I'll reply soon!",
+      "Let's connect and collaborate!",
+    ],
+  };
+
+  // Greeting messages when the blob appears
+  const greetings = [
+    "Hi there! 👋",
+    "Welcome to my site! ✨",
+    "Hello! Nice to see you!",
+    "Thanks for visiting! 😊",
+    "Hey! Look around!",
+  ];
+
+  // Messages for when user has been inactive
+  const idleMessages = [
+    "Finding everything okay?",
+    "Check out my projects!",
+    "Feel free to explore!",
+    "Need any help?",
+    "Don't be shy, I don't bite!",
+    "Like what you see?",
+  ];
+
+  // Messages for when user hovers near the blob
+  const hoverMessages = [
+    "Hello there!",
+    "Oh! Hi!",
+    "Need something?",
+    "You found me!",
+    "I'm here to help!",
+    "Double-click to make me follow you!",
+  ];
+
+  // Messages for when in following mode
+  const followingMessages = [
+    "I'll follow you!",
+    "Leading the way?",
+    "Where are we going?",
+    "I'm right behind you!",
+    "This is fun!",
+  ];
+
   // Double click detection
   let lastClickTime = 0;
 
@@ -267,15 +405,66 @@ document.addEventListener("DOMContentLoaded", function () {
     "bouncy", // Added a cute bouncy expression
   ];
 
-  // Cute color schemes for different moods - now with gradients
+  // Cute color schemes for different moods - now with enhanced gradients
   const colorSchemes = {
-    happy: "radial-gradient(circle at 30% 30%, #b5f9ef, #a5f3e9, #8de2d9)", // Mint/teal
-    surprised: "radial-gradient(circle at 30% 30%, #ffe6eb, #ffd6e0, #ffbed0)", // Light pink
-    excited: "radial-gradient(circle at 30% 30%, #dbffbf, #ccffa8, #b8f090)", // Light green
-    sleepy: "radial-gradient(circle at 30% 30%, #e4d8ff, #d3c5f8, #c4b2f5)", // Lavender
-    uwu: "radial-gradient(circle at 30% 30%, #ffdbdd, #ffccd0, #ffb8bd)", // Soft coral
-    bouncy: "radial-gradient(circle at 30% 30%, #c9eeff, #b8e6ff, #a0d8ff)", // Sky blue
+    happy: "radial-gradient(circle at 30% 25%, #c8fbf2, #a5f3e9, #8de2d9)", // Mint/teal
+    surprised: "radial-gradient(circle at 30% 25%, #fff0f3, #ffd6e0, #ffbed0)", // Light pink
+    excited: "radial-gradient(circle at 30% 25%, #e9ffd8, #ccffa8, #b8f090)", // Light green
+    sleepy: "radial-gradient(circle at 30% 25%, #efe5ff, #d3c5f8, #c4b2f5)", // Lavender
+    uwu: "radial-gradient(circle at 30% 25%, #ffe5e7, #ffccd0, #ffb8bd)", // Soft coral
+    bouncy: "radial-gradient(circle at 30% 25%, #d9f2ff, #b8e6ff, #a0d8ff)", // Sky blue
   };
+
+  // Function to make the blob speak
+  function speak(message, duration = 3000) {
+    // Don't interrupt if already speaking, queue it up
+    if (isSpeaking) {
+      setTimeout(() => speak(message, duration), duration);
+      return;
+    }
+
+    // Update speech bubble
+    speechBubble.textContent = message;
+    speechBubble.style.opacity = "1";
+
+    // Match speech bubble border color to current mood
+    let borderColor = "#8de2d9"; // Default color
+
+    // Set border color based on current expression
+    switch (currentExpression) {
+      case "happy":
+        borderColor = "#8de2d9";
+        break; // Mint/teal
+      case "surprised":
+        borderColor = "#ffbed0";
+        break; // Light pink
+      case "excited":
+        borderColor = "#b8f090";
+        break; // Light green
+      case "sleepy":
+        borderColor = "#c4b2f5";
+        break; // Lavender
+      case "uwu":
+        borderColor = "#ffb8bd";
+        break; // Soft coral
+      case "bouncy":
+        borderColor = "#a0d8ff";
+        break; // Sky blue
+    }
+
+    speechBubble.style.borderColor = borderColor;
+
+    isSpeaking = true;
+
+    // Clear any existing timer
+    clearTimeout(speechTimer);
+
+    // Set timer to hide speech bubble
+    speechTimer = setTimeout(() => {
+      speechBubble.style.opacity = "0";
+      isSpeaking = false;
+    }, duration);
+  }
 
   // Function to set expression
   function setExpression(expression) {
@@ -300,27 +489,39 @@ document.addEventListener("DOMContentLoaded", function () {
     switch (expression) {
       case "happy":
         character.style.boxShadow =
-          "0 0 20px rgba(165, 243, 233, 0.6), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 2px -2px 7px rgba(0, 0, 0, 0.1)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+        character.style.filter =
+          "drop-shadow(0 8px 20px rgba(141, 226, 217, 0.3))";
         break;
       case "surprised":
         character.style.boxShadow =
-          "0 0 25px rgba(255, 214, 224, 0.7), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 2px -2px 7px rgba(0, 0, 0, 0.1)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+        character.style.filter =
+          "drop-shadow(0 8px 20px rgba(255, 190, 208, 0.4))";
         break;
       case "excited":
         character.style.boxShadow =
-          "0 0 25px rgba(204, 255, 168, 0.7), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 2px -2px 7px rgba(0, 0, 0, 0.1)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+        character.style.filter =
+          "drop-shadow(0 8px 20px rgba(184, 240, 144, 0.4))";
         break;
       case "sleepy":
         character.style.boxShadow =
-          "0 0 15px rgba(211, 197, 248, 0.5), inset 0 -10px 15px rgba(255, 255, 255, 0.5), inset 2px -2px 7px rgba(0, 0, 0, 0.1)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.5), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+        character.style.filter =
+          "drop-shadow(0 8px 15px rgba(196, 178, 245, 0.3))";
         break;
       case "uwu":
         character.style.boxShadow =
-          "0 0 25px rgba(255, 204, 208, 0.7), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 2px -2px 7px rgba(0, 0, 0, 0.1)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+        character.style.filter =
+          "drop-shadow(0 8px 20px rgba(255, 184, 189, 0.4))";
         break;
       case "bouncy":
         character.style.boxShadow =
-          "0 0 30px rgba(184, 230, 255, 0.8), inset 0 -10px 15px rgba(255, 255, 255, 0.8), inset 2px -2px 7px rgba(0, 0, 0, 0.1)";
+          "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.8), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+        character.style.filter =
+          "drop-shadow(0 8px 25px rgba(160, 216, 255, 0.5))";
         break;
     }
 
@@ -530,12 +731,12 @@ document.addEventListener("DOMContentLoaded", function () {
     // Calculate a point within view but not too close to edges
     const padding = 150;
 
-    // Current position
+    // Current position within viewport
     const currentX = blobRect.left + blobRect.width / 2;
     const currentY = blobRect.top + blobRect.height / 2;
 
     // Limit movement to a reasonable distance to prevent teleporting
-    const maxMove = 400; // Increased from 300 to allow more movement
+    const maxMove = Math.min(300, windowHeight / 3, windowWidth / 3); // More limited movement to stay in view
 
     // Encourage exploration across the full width
     // Bias towards unexplored areas
@@ -558,16 +759,13 @@ document.addEventListener("DOMContentLoaded", function () {
     // Calculate distance - random but weighted towards more movement
     const distance = Math.pow(Math.random(), 0.7) * maxMove;
 
-    // Calculate new position using angle and distance
+    // Calculate new position using angle and distance within viewport
     let newX = currentX + Math.cos(targetDirection) * distance;
     let newY = currentY + Math.sin(targetDirection) * distance;
 
     // Keep within viewport boundaries with more generous padding
     newX = Math.max(padding, Math.min(windowWidth - padding, newX));
-    newY = Math.max(
-      padding + scrollY,
-      Math.min(windowHeight - padding + scrollY, newY)
-    );
+    newY = Math.max(padding, Math.min(windowHeight - padding, newY));
 
     exploreTargetX = newX;
     exploreTargetY = newY;
@@ -576,6 +774,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const randomExpression =
       expressions[Math.floor(Math.random() * expressions.length)];
     setExpression(randomExpression);
+
+    // Occasionally say something during exploration
+    if (Math.random() < 0.2) {
+      const randomMessage =
+        idleMessages[Math.floor(Math.random() * idleMessages.length)];
+      speak(randomMessage);
+    }
 
     // Set timeout for next exploration - shorter duration for more activity
     const explorationDuration = 2000 + Math.random() * 3000; // 2-5 seconds
@@ -612,6 +817,17 @@ document.addEventListener("DOMContentLoaded", function () {
       // Show surprise expression briefly when hovered
       if (!isFollowingCursor) {
         setExpression("surprised");
+
+        // Adjust eye movement delay to be faster (more attentive) when mouse is hovering
+        eyeMovementDelay = 0.15; // Faster eye movement when cursor is nearby
+
+        // Sometimes say a greeting when hovered
+        if (Math.random() < 0.7) {
+          const randomMessage =
+            hoverMessages[Math.floor(Math.random() * hoverMessages.length)];
+          speak(randomMessage);
+        }
+
         setTimeout(() => {
           if (hovered && !isFollowingCursor) {
             // Sometimes show uwu when hover ends
@@ -626,6 +842,15 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } else if (distance > 200 && hovered) {
       hovered = false;
+      // Return eye movement to normal delay
+      eyeMovementDelay = 0.07;
+    }
+
+    // Dynamically adjust eye movement speed based on cursor distance
+    if (!isFollowingCursor && !hovered) {
+      // Farther cursor = slower eye movement
+      const normalizedDistance = Math.min(1, distance / 800);
+      eyeMovementDelay = 0.05 + normalizedDistance * 0.07; // 0.05 (closer) to 0.12 (farther)
     }
   });
 
@@ -641,8 +866,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const now = Date.now();
 
-    // If click is near the blob, check for double click
-    if (distance < 150) {
+    // If click is near the blob, check for double click - made detection area larger
+    if (distance < 180) {
       if (now - lastClickTime < 300) {
         // 300ms for double click detection
         // Double click detected - toggle cursor following
@@ -665,6 +890,13 @@ document.addEventListener("DOMContentLoaded", function () {
           characterY = blobTop;
 
           setExpression("bouncy"); // Use the bouncy expression when following
+
+          // Say a following message
+          const randomMessage =
+            followingMessages[
+              Math.floor(Math.random() * followingMessages.length)
+            ];
+          speak(randomMessage);
         } else {
           // Start exploring again when done following
           setExpression("happy");
@@ -673,12 +905,19 @@ document.addEventListener("DOMContentLoaded", function () {
           characterX = blobLeft;
           characterY = blobTop;
 
+          // Say goodbye to following
+          speak("I'll explore on my own now!");
+
           setTimeout(startExploring, 500);
         }
       } else {
-        // Single click - sometimes show uwu
+        // Single click - sometimes show uwu and say something
         if (Math.random() < 0.3 && !isFollowingCursor) {
           setExpression("uwu");
+
+          // Say something cute when clicked
+          speak("Hehe, that tickles!");
+
           setTimeout(() => {
             if (!isFollowingCursor) setExpression("happy");
           }, 1000);
@@ -697,12 +936,59 @@ document.addEventListener("DOMContentLoaded", function () {
   // Track scroll position
   window.addEventListener("scroll", function () {
     targetScrollY = window.scrollY;
+
+    // When scrolling, if the blob is exploring, update the exploration target
+    // to be within the current viewport
+    if (isExploring) {
+      const blobRect = character.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // If the exploration target is now outside the viewport, get a new target
+      const targetInViewport =
+        exploreTargetX >= 0 &&
+        exploreTargetX <= viewportWidth &&
+        exploreTargetY >= 0 &&
+        exploreTargetY <= viewportHeight;
+
+      if (!targetInViewport && Math.random() < 0.3) {
+        // Only sometimes get a new target
+        // Get current position within viewport
+        const currentX = blobRect.left + blobRect.width / 2;
+        const currentY = blobRect.top + blobRect.height / 2;
+
+        // Calculate a point within the current viewport
+        const padding = 100;
+        const newTargetX = Math.max(
+          padding,
+          Math.min(
+            viewportWidth - padding,
+            currentX + (Math.random() - 0.5) * 200
+          )
+        );
+        const newTargetY = Math.max(
+          padding,
+          Math.min(
+            viewportHeight - padding,
+            currentY + (Math.random() - 0.5) * 200
+          )
+        );
+
+        // Set new exploration target within viewport
+        exploreTargetX = newTargetX;
+        exploreTargetY = newTargetY;
+      }
+    }
   });
 
   // Animation function
   function animateCharacter() {
     // Update position based on scrolling
     scrollY += (targetScrollY - scrollY) * 0.05;
+
+    // Get viewport dimensions
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
 
     // Add a subtle scale pulsing effect for "breathing"
     const breathScale = 1 + Math.sin(Date.now() / 2000) * 0.02;
@@ -746,19 +1032,35 @@ document.addEventListener("DOMContentLoaded", function () {
     // If actively following cursor (after double click)
     else if (isFollowingCursor) {
       // Target position based on mouse (offset from mouse position)
-      const targetX = mouseX - 65; // Center on mouse
-      const targetY = mouseY - 65 + scrollY; // Center on mouse
+      const targetX = mouseX - 50; // Closer to mouse
+      const targetY = mouseY - 50; // Closer to mouse, no scroll offset needed for fixed position
+
+      // Constrain target position to viewport bounds
+      const charWidth = character.offsetWidth;
+      const charHeight = character.offsetHeight;
+      const padding = 20;
+
+      // Calculate bounded target - using viewport coordinates only
+      const boundedTargetX = Math.max(
+        padding,
+        Math.min(window.innerWidth - charWidth - padding, targetX)
+      );
+
+      const boundedTargetY = Math.max(
+        padding,
+        Math.min(window.innerHeight - charHeight - padding, targetY)
+      );
 
       // Smooth following with distance-based easing
-      const dx = targetX - characterX;
-      const dy = targetY - characterY;
+      const dx = boundedTargetX - characterX;
+      const dy = boundedTargetY - characterY;
 
       // Distance-based easing (slower when closer to target)
       const distance = Math.sqrt(dx * dx + dy * dy);
 
       // If too far, use faster movement to catch up, otherwise very gentle
       const speed =
-        distance > 300 ? 0.08 : Math.max(0.02, Math.min(0.04, distance / 300));
+        distance > 300 ? 0.1 : Math.max(0.03, Math.min(0.05, distance / 300));
 
       characterX += dx * speed;
       characterY += dy * speed;
@@ -775,13 +1077,9 @@ document.addEventListener("DOMContentLoaded", function () {
       const pupilXOffset = (mouseX - eyeCenterX) / 150;
       const pupilYOffset = (mouseY - eyeCenterY) / 150;
 
-      const pupilX = 8 + Math.max(-4, Math.min(4, pupilXOffset));
-      const pupilY = 8 + Math.max(-4, Math.min(4, pupilYOffset));
-
-      leftPupil.style.left = pupilX + "px";
-      leftPupil.style.top = pupilY + "px";
-      rightPupil.style.left = pupilX + "px";
-      rightPupil.style.top = pupilY + "px";
+      // Set target for smooth eye movement
+      targetPupilX = 8 + Math.max(-4, Math.min(4, pupilXOffset));
+      targetPupilY = 8 + Math.max(-4, Math.min(4, pupilYOffset));
     }
     // Exploring on its own
     else if (isExploring) {
@@ -800,14 +1098,28 @@ document.addEventListener("DOMContentLoaded", function () {
       character.style.left = characterX + "px";
       character.style.top = characterY + "px";
 
-      // Look in direction of movement - subtle eye movement
-      const lookX = Math.sign(dx) * Math.min(2, Math.abs(dx) * 0.01);
-      const lookY = Math.sign(dy) * Math.min(2, Math.abs(dy) * 0.01);
+      // Look at cursor position with subtle movement
+      const eyeCenterX = window.innerWidth / 2;
+      const eyeCenterY = window.innerHeight / 2;
 
-      leftPupil.style.left = 8 + lookX + "px";
-      leftPupil.style.top = 8 + lookY + "px";
-      rightPupil.style.left = 8 + lookX + "px";
-      rightPupil.style.top = 8 + lookY + "px";
+      // Calculate pupil movement with reduced intensity
+      const pupilXOffset = (mouseX - eyeCenterX) / 250; // Reduced intensity
+      const pupilYOffset = (mouseY - eyeCenterY) / 250; // Reduced intensity
+
+      // Direction of movement (exploration) still influences the eyes slightly
+      const lookDirectionX =
+        Math.sign(dx) * Math.min(1.5, Math.abs(dx) * 0.008);
+      const lookDirectionY =
+        Math.sign(dy) * Math.min(1.5, Math.abs(dy) * 0.008);
+
+      // Combine cursor position and movement direction (30% movement direction, 70% cursor)
+      // Set target for smooth eye movement
+      targetPupilX =
+        8 +
+        Math.max(-3, Math.min(3, pupilXOffset * 0.7 + lookDirectionX * 0.3));
+      targetPupilY =
+        8 +
+        Math.max(-3, Math.min(3, pupilYOffset * 0.7 + lookDirectionY * 0.3));
     }
     // Idle state - just floating in place
     else {
@@ -815,11 +1127,17 @@ document.addEventListener("DOMContentLoaded", function () {
       character.style.left = characterX + "px";
       character.style.top = characterY + "px";
 
-      // Center pupils
-      leftPupil.style.left = "8px";
-      leftPupil.style.top = "8px";
-      rightPupil.style.left = "8px";
-      rightPupil.style.top = "8px";
+      // Make eyes look at cursor with subtle movement
+      const eyeCenterX = window.innerWidth / 2;
+      const eyeCenterY = window.innerHeight / 2;
+
+      // Calculate pupil movement - subtle when idle
+      const pupilXOffset = (mouseX - eyeCenterX) / 300; // Even more subtle when idle
+      const pupilYOffset = (mouseY - eyeCenterY) / 300; // Even more subtle when idle
+
+      // Set target for smooth eye movement
+      targetPupilX = 8 + Math.max(-2.5, Math.min(2.5, pupilXOffset));
+      targetPupilY = 8 + Math.max(-2.5, Math.min(2.5, pupilYOffset));
 
       // Start exploring if we're idle too long and not following cursor
       if (
@@ -834,10 +1152,63 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
+    // Apply smooth eye movement with delay
+    currentPupilX += (targetPupilX - currentPupilX) * eyeMovementDelay;
+    currentPupilY += (targetPupilY - currentPupilY) * eyeMovementDelay;
+
+    // Apply calculated pupil positions
+    leftPupil.style.left = currentPupilX + "px";
+    leftPupil.style.top = currentPupilY + "px";
+    rightPupil.style.left = currentPupilX + "px";
+    rightPupil.style.top = currentPupilY + "px";
+
     // Apply transform with improved animation effects
     character.style.transform = `translate(${floatX}px, ${floatY}px) scale(${breathScale}) scaleY(${squashStretch}) scaleX(${
       1 / squashStretch
     })`;
+
+    // Ensure the blob stays within the viewport regardless of mode
+    const charRect = character.getBoundingClientRect();
+    const charWidth = charRect.width;
+    const charHeight = charRect.height;
+
+    // Calculate bounds with padding
+    const padding = 20;
+    const minX = padding;
+    const maxX = viewportWidth - charWidth - padding;
+    const minY = padding;
+    const maxY = viewportHeight - charHeight - padding;
+
+    // Check if outside bounds and adjust - use client-relative positions since we're fixed
+    let needsRepositioning = false;
+
+    if (charRect.left < minX) {
+      characterX = minX;
+      needsRepositioning = true;
+    } else if (charRect.right > viewportWidth - padding) {
+      characterX = maxX;
+      needsRepositioning = true;
+    }
+
+    if (charRect.top < minY) {
+      characterY = minY;
+      needsRepositioning = true;
+    } else if (charRect.bottom > viewportHeight - padding) {
+      characterY = maxY;
+      needsRepositioning = true;
+    }
+
+    // Apply position correction if needed
+    if (needsRepositioning) {
+      character.style.left = characterX + "px";
+      character.style.top = characterY + "px";
+
+      // If exploring, update the target too to avoid fighting with the constraints
+      if (isExploring) {
+        exploreTargetX = characterX;
+        exploreTargetY = characterY;
+      }
+    }
 
     // Continue animation
     requestAnimationFrame(animateCharacter);
@@ -873,8 +1244,62 @@ document.addEventListener("DOMContentLoaded", function () {
   // Start animation
   animateCharacter();
 
+  // Say hello when first loaded
+  setTimeout(() => {
+    const randomGreeting =
+      greetings[Math.floor(Math.random() * greetings.length)];
+    speak(randomGreeting);
+  }, 1000);
+
   // Begin exploring after a short delay
   setTimeout(startExploring, 2000);
+
+  // Add event listener for scrolling to detect sections
+  window.addEventListener("scroll", function () {
+    // Only proceed if not speaking and not following cursor
+    if (isSpeaking || isFollowingCursor) return;
+
+    // Check which section is currently in view
+    const sections = document.querySelectorAll("section[id]");
+    let currentSection = "";
+
+    sections.forEach((section) => {
+      const sectionTop = section.offsetTop;
+      const sectionHeight = section.offsetHeight;
+      const scrollPosition = window.scrollY + window.innerHeight / 2;
+
+      if (
+        scrollPosition >= sectionTop &&
+        scrollPosition <= sectionTop + sectionHeight
+      ) {
+        currentSection = section.id;
+      }
+    });
+
+    // If we've moved to a new section and it has messages, possibly speak
+    if (
+      currentSection &&
+      currentSection !== lastVisitedSection &&
+      sectionMessages[currentSection]
+    ) {
+      lastVisitedSection = currentSection;
+
+      // Only speak sometimes (30% chance) to avoid being too chatty
+      if (Math.random() < 0.3) {
+        const messages = sectionMessages[currentSection];
+        const randomMessage =
+          messages[Math.floor(Math.random() * messages.length)];
+        speak(randomMessage);
+
+        // Also change expression sometimes
+        if (Math.random() < 0.5) {
+          const randomExpression =
+            expressions[Math.floor(Math.random() * expressions.length)];
+          setExpression(randomExpression);
+        }
+      }
+    }
+  });
 
   console.log("Floating blob with expressions initialized");
 });
