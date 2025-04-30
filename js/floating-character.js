@@ -1604,10 +1604,11 @@ document.addEventListener("DOMContentLoaded", function () {
       const rect = section.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
 
-      // Check if section is at least 40% visible in viewport
+      // Check if section is at least 50% visible in viewport (increased from 40%)
+      // This makes the detection more deliberate and requires more scrolling
       if (
-        rect.top < viewportHeight * 0.6 &&
-        rect.bottom > viewportHeight * 0.3
+        rect.top < viewportHeight * 0.5 &&
+        rect.bottom > viewportHeight * 0.4
       ) {
         visibleSection = section.id;
       }
@@ -1621,20 +1622,23 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
       lastVisitedSection = visibleSection;
 
-      // Higher chance to speak when we explicitly check
-      if (Math.random() < 0.9) {
+      // Lower chance to speak when entering a section (50% instead of 90%)
+      // This reduces the feeling of randomness in messages
+      if (Math.random() < 0.5) {
         const messages = sectionMessages[visibleSection];
         const randomMessage =
           messages[Math.floor(Math.random() * messages.length)];
         speak(randomMessage, 4000);
 
-        // Change expression sometimes
-        const randomExpression =
-          expressions[Math.floor(Math.random() * expressions.length)];
-        setExpression(randomExpression);
+        // Change expression sometimes, but less frequently (30% vs 100% before)
+        if (Math.random() < 0.3) {
+          const randomExpression =
+            expressions[Math.floor(Math.random() * expressions.length)];
+          setExpression(randomExpression);
+        }
       }
     }
-  }, 3000); // Check every 3 seconds
+  }, 5000); // Check less frequently - every 5 seconds instead of 3
 
   // Additional keyboard interactions and easter eggs
   document.addEventListener("keydown", function (e) {
@@ -1925,8 +1929,9 @@ document.addEventListener("DOMContentLoaded", function () {
         targetText.includes("JP") ||
         targetText.includes("Pinninti")
       ) {
-        // Don't react too often - only 30% chance when hovering over name
-        if (Math.random() < 0.3) {
+        // Lower the chance to react - only 15% chance when hovering over name
+        // This reduces the frequency of seemingly random name comments
+        if (Math.random() < 0.15) {
           const ownerMessages = [
             "That's my creator!",
             "Jaya Prakash is awesome!",
@@ -1938,8 +1943,8 @@ document.addEventListener("DOMContentLoaded", function () {
             ownerMessages[Math.floor(Math.random() * ownerMessages.length)];
           speak(randomMessage);
 
-          // Show a heart animation
-          if (Math.random() < 0.5) {
+          // Reduce the heart animation frequency
+          if (Math.random() < 0.3) {
             const heart = document.createElement("div");
             heart.textContent = "❤️";
             Object.assign(heart.style, {
@@ -2065,8 +2070,9 @@ document.addEventListener("DOMContentLoaded", function () {
           if (hours >= 19 || hours < 6) {
             // Night time
             return; // Already handled by night mode
-          } else if (Math.random() < 0.2) {
-            // 20% chance to simulate weather
+          } else if (Math.random() < 0.05) {
+            // Drastically reduce chance (from 20% to 5%) to simulate weather
+            // This will make weather comments much less frequent and random-seeming
             // Just guess a random weather condition
             const conditions = ["clear", "cloudy", "rainy"];
             const randomCondition =
@@ -2643,6 +2649,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const now = new Date();
     const month = now.getMonth() + 1; // 1-12
     const day = now.getDate();
+
+    // Add a safety check to prevent false positive special dates
+    // Only check once per day and store result in localStorage
+    const today = `${now.getFullYear()}-${month}-${day}`;
+    const lastCheckedDate = localStorage.getItem("lastSpecialDateCheck");
+
+    if (lastCheckedDate === today) {
+      // Already checked today, don't repeat
+      return;
+    }
+
+    // Save that we checked today
+    localStorage.setItem("lastSpecialDateCheck", today);
+
     const specialOccasion = getSpecialOccasion(month, day);
 
     if (specialOccasion) {
@@ -2660,6 +2680,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Determine special occasions based on date
   function getSpecialOccasion(month, day) {
+    // Exact matches for special dates, no ranges to prevent false positives
+
     // New Year's Day
     if (month === 1 && day === 1) {
       return {
@@ -2701,12 +2723,12 @@ document.addEventListener("DOMContentLoaded", function () {
       };
     }
 
-    // Thanksgiving (US, approximate)
+    // Thanksgiving (US) - Hardcoded dates to avoid false positives
+    // 2024: Nov 28, 2025: Nov 27
+    const year = new Date().getFullYear();
     if (
-      month === 11 &&
-      day >= 22 &&
-      day <= 28 &&
-      new Date(now.getFullYear(), 10, day).getDay() === 4
+      (year === 2024 && month === 11 && day === 28) ||
+      (year === 2025 && month === 11 && day === 27)
     ) {
       return {
         message: "Happy Thanksgiving! 🦃 I'm thankful for your visit!",
