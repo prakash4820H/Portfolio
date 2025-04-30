@@ -1478,6 +1478,7 @@ document.addEventListener("DOMContentLoaded", function () {
       currentSection !== lastVisitedSection &&
       sectionMessages[currentSection]
     ) {
+      updateCurrentSection(currentSection); // Update section memory
       lastVisitedSection = currentSection;
 
       // Increased chance to speak from 30% to 80%
@@ -2270,4 +2271,607 @@ document.addEventListener("DOMContentLoaded", function () {
       character.setAttribute("data-user-positioned", "true");
     }
   });
+
+  // Add memory capability to the blob
+  const blobMemory = {
+    visitCount: 0,
+    lastVisit: null,
+    favoriteSection: null,
+    sectionVisits: {},
+    interactionCount: 0,
+  };
+
+  // Try to load memory from localStorage
+  function loadBlobMemory() {
+    try {
+      const savedMemory = localStorage.getItem("blobMemory");
+      if (savedMemory) {
+        const parsedMemory = JSON.parse(savedMemory);
+
+        // Update memory with saved values but keep structure intact
+        blobMemory.visitCount = parsedMemory.visitCount || 0;
+        blobMemory.lastVisit = parsedMemory.lastVisit || null;
+        blobMemory.favoriteSection = parsedMemory.favoriteSection || null;
+        blobMemory.sectionVisits = parsedMemory.sectionVisits || {};
+        blobMemory.interactionCount = parsedMemory.interactionCount || 0;
+
+        // Greet returning visitor
+        const lastVisitDate = blobMemory.lastVisit
+          ? new Date(blobMemory.lastVisit)
+          : null;
+        const now = new Date();
+
+        blobMemory.visitCount++;
+
+        if (lastVisitDate && blobMemory.visitCount > 1) {
+          // Calculate days since last visit
+          const daysSinceLastVisit = Math.floor(
+            (now - lastVisitDate) / (1000 * 60 * 60 * 24)
+          );
+
+          if (daysSinceLastVisit < 1) {
+            setTimeout(() => {
+              setExpression("excited");
+              speak("Welcome back! Nice to see you again today!");
+            }, 2000);
+          } else if (daysSinceLastVisit < 7) {
+            setTimeout(() => {
+              setExpression("excited");
+              speak(
+                `Welcome back! It's been ${daysSinceLastVisit} day${
+                  daysSinceLastVisit > 1 ? "s" : ""
+                } since your last visit!`
+              );
+            }, 2000);
+          } else if (daysSinceLastVisit < 30) {
+            setTimeout(() => {
+              setExpression("surprised");
+              speak("Wow, you're back! It's been a while!");
+            }, 2000);
+          } else {
+            setTimeout(() => {
+              setExpression("excited");
+              speak("Oh my! You've returned after so long! Welcome back!");
+            }, 2000);
+          }
+
+          // If user has a favorite section, mention it
+          if (blobMemory.favoriteSection) {
+            setTimeout(() => {
+              speak(
+                `I remember you liked the ${blobMemory.favoriteSection} section. Want to check it out again?`
+              );
+            }, 5000);
+          }
+        }
+
+        // Update last visit
+        blobMemory.lastVisit = now.toISOString();
+      } else {
+        // First visit
+        blobMemory.visitCount = 1;
+        blobMemory.lastVisit = new Date().toISOString();
+      }
+    } catch (error) {
+      console.log("Error loading blob memory:", error);
+    }
+
+    // Save initial/updated memory
+    saveBlobMemory();
+  }
+
+  // Save memory to localStorage
+  function saveBlobMemory() {
+    try {
+      localStorage.setItem("blobMemory", JSON.stringify(blobMemory));
+    } catch (error) {
+      console.log("Error saving blob memory:", error);
+    }
+  }
+
+  // Update section visits and determine favorite
+  function updateSectionMemory(sectionId) {
+    if (!sectionId) return;
+
+    if (!blobMemory.sectionVisits[sectionId]) {
+      blobMemory.sectionVisits[sectionId] = 0;
+    }
+
+    blobMemory.sectionVisits[sectionId]++;
+
+    // Determine favorite section (most visited)
+    let maxVisits = 0;
+    for (const section in blobMemory.sectionVisits) {
+      if (blobMemory.sectionVisits[section] > maxVisits) {
+        maxVisits = blobMemory.sectionVisits[section];
+        blobMemory.favoriteSection = section;
+      }
+    }
+
+    saveBlobMemory();
+  }
+
+  // Track user interactions with blob
+  function trackInteraction() {
+    blobMemory.interactionCount++;
+    saveBlobMemory();
+
+    // Milestone achievements
+    if (blobMemory.interactionCount === 10) {
+      speak("We're becoming friends! You've interacted with me 10 times!");
+    } else if (blobMemory.interactionCount === 50) {
+      speak("Wow! 50 interactions! You must really like me!");
+    }
+  }
+
+  // Color theme awareness - detect and match website theme
+  function detectColorTheme() {
+    try {
+      // Check if the website uses a dark theme
+      const isDarkTheme =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      // Check for actual dark mode by sampling background color
+      const bodyBgColor = window.getComputedStyle(
+        document.body
+      ).backgroundColor;
+      const isBodyDark = isColorDark(bodyBgColor);
+
+      // If body has dark background or system prefers dark
+      if (
+        isBodyDark ||
+        (isDarkTheme && !character.classList.contains("dark-mode-aware"))
+      ) {
+        character.classList.add("dark-mode-aware");
+
+        // Adjust blob for dark mode - brighter colors and glow
+        Object.assign(character.style, {
+          filter: "drop-shadow(0 8px 25px rgba(141, 226, 217, 0.4))",
+          boxShadow:
+            "0 10px 25px rgba(0, 0, 0, 0.25), inset 0 -10px 15px rgba(255, 255, 255, 0.8), inset 5px -5px 15px rgba(0, 0, 0, 0.1)",
+        });
+
+        // Make eyes stand out more in dark mode
+        leftEye.style.backgroundColor = "white";
+        rightEye.style.backgroundColor = "white";
+        leftEye.style.borderColor = "#444";
+        rightEye.style.borderColor = "#444";
+
+        // Make speech bubble more visible on dark backgrounds
+        Object.assign(speechBubble.style, {
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          boxShadow:
+            "0 5px 15px rgba(0, 0, 0, 0.2), 0 3px 5px rgba(0, 0, 0, 0.1)",
+          color: "#222",
+        });
+
+        // Update bubble tail to match
+        speechBubbleTail.style.borderColor =
+          "transparent rgba(255, 255, 255, 0.95) transparent transparent";
+      } else if (
+        !isBodyDark &&
+        character.classList.contains("dark-mode-aware")
+      ) {
+        // Switch back to light mode
+        character.classList.remove("dark-mode-aware");
+
+        // Reset styles to original
+        setExpression(currentExpression);
+      }
+    } catch (error) {
+      console.log("Error detecting color theme:", error);
+    }
+  }
+
+  // Helper function to determine if a color is dark
+  function isColorDark(rgbColor) {
+    try {
+      // Extract RGB values
+      const rgb = rgbColor.match(/\d+/g);
+      if (rgb && rgb.length >= 3) {
+        const [r, g, b] = rgb.map(Number);
+        // Calculate relative luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance < 0.5;
+      }
+      return false;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Check for special dates and holidays
+  function checkSpecialDates() {
+    const now = new Date();
+    const month = now.getMonth() + 1; // 1-12
+    const day = now.getDate();
+    const specialOccasion = getSpecialOccasion(month, day);
+
+    if (specialOccasion) {
+      setTimeout(() => {
+        setExpression("excited");
+        speak(specialOccasion.message);
+
+        // Add festive effects if available
+        if (specialOccasion.effect) {
+          addFestiveEffect(specialOccasion.effect);
+        }
+      }, 3000);
+    }
+  }
+
+  // Determine special occasions based on date
+  function getSpecialOccasion(month, day) {
+    // New Year's Day
+    if (month === 1 && day === 1) {
+      return {
+        message: "Happy New Year! 🎉 Here's to a wonderful year ahead!",
+        effect: "confetti",
+      };
+    }
+
+    // Valentine's Day
+    if (month === 2 && day === 14) {
+      return {
+        message: "Happy Valentine's Day! ❤️ Spread the love!",
+        effect: "hearts",
+      };
+    }
+
+    // St. Patrick's Day
+    if (month === 3 && day === 17) {
+      return {
+        message: "Happy St. Patrick's Day! ☘️ Feeling lucky?",
+        effect: "clovers",
+      };
+    }
+
+    // April Fools
+    if (month === 4 && day === 1) {
+      return {
+        message:
+          "April Fools' Day! Don't worry, I won't play any pranks on you... or will I? 😏",
+        effect: "trick",
+      };
+    }
+
+    // Halloween
+    if (month === 10 && day === 31) {
+      return {
+        message: "Happy Halloween! 🎃 Trick or treat!",
+        effect: "halloween",
+      };
+    }
+
+    // Thanksgiving (US, approximate)
+    if (
+      month === 11 &&
+      day >= 22 &&
+      day <= 28 &&
+      new Date(now.getFullYear(), 10, day).getDay() === 4
+    ) {
+      return {
+        message: "Happy Thanksgiving! 🦃 I'm thankful for your visit!",
+        effect: "thanksgiving",
+      };
+    }
+
+    // Christmas
+    if (month === 12 && day === 25) {
+      return {
+        message: "Merry Christmas! 🎄 Wishing you joy and happiness!",
+        effect: "christmas",
+      };
+    }
+
+    // Christmas Eve
+    if (month === 12 && day === 24) {
+      return {
+        message: "It's Christmas Eve! 🎁 Excitement is in the air!",
+        effect: "christmas",
+      };
+    }
+
+    // New Year's Eve
+    if (month === 12 && day === 31) {
+      return {
+        message: "Happy New Year's Eve! 🎆 Ready to count down?",
+        effect: "confetti",
+      };
+    }
+
+    return null;
+  }
+
+  // Add festive effects based on special occasions
+  function addFestiveEffect(effectType) {
+    switch (effectType) {
+      case "confetti":
+        createConfetti();
+        break;
+      case "hearts":
+        createHearts();
+        break;
+      case "halloween":
+        setExpression("spooky");
+        // Add jack-o-lantern hat
+        addHat("🎃");
+        break;
+      case "christmas":
+        // Add Santa hat
+        addHat("🎅");
+        break;
+      case "thanksgiving":
+        // Add turkey effect
+        addHat("🦃");
+        break;
+    }
+  }
+
+  // Create confetti effect around blob
+  function createConfetti() {
+    const count = 30;
+    const colors = [
+      "#ff0000",
+      "#00ff00",
+      "#0000ff",
+      "#ffff00",
+      "#ff00ff",
+      "#00ffff",
+    ];
+
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const confetti = document.createElement("div");
+        const size = Math.random() * 8 + 4;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+
+        Object.assign(confetti.style, {
+          position: "absolute",
+          width: size + "px",
+          height: size + "px",
+          backgroundColor: color,
+          borderRadius: "2px",
+          opacity: "1",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+          zIndex: "9997",
+        });
+
+        character.appendChild(confetti);
+
+        // Animate the confetti out in random directions
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 50 + Math.random() * 100;
+        const duration = 1000 + Math.random() * 1000;
+
+        confetti.animate(
+          [
+            { transform: "translate(-50%, -50%) rotate(0deg)", opacity: 1 },
+            {
+              transform: `translate(calc(-50% + ${
+                Math.cos(angle) * distance
+              }px), calc(-50% + ${Math.sin(angle) * distance}px)) rotate(${
+                Math.random() * 360
+              }deg)`,
+              opacity: 0,
+            },
+          ],
+          {
+            duration: duration,
+            easing: "cubic-bezier(0.1, 0.8, 0.2, 1)",
+          }
+        );
+
+        setTimeout(() => {
+          confetti.remove();
+        }, duration);
+      }, Math.random() * 1000); // Stagger the creation
+    }
+  }
+
+  // Create heart particles
+  function createHearts() {
+    const count = 15;
+
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const heart = document.createElement("div");
+        heart.textContent = "❤️";
+        const size = 14 + Math.random() * 10;
+
+        Object.assign(heart.style, {
+          position: "absolute",
+          fontSize: size + "px",
+          opacity: "1",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+          zIndex: "9997",
+        });
+
+        character.appendChild(heart);
+
+        // Animate the heart floating up
+        const angle =
+          -Math.PI / 2 + ((Math.random() * Math.PI) / 4 - Math.PI / 8); // Mostly upward
+        const distance = 50 + Math.random() * 70;
+        const duration = 2000 + Math.random() * 1000;
+
+        heart.animate(
+          [
+            { transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
+            {
+              transform: `translate(calc(-50% + ${
+                Math.cos(angle) * distance
+              }px), calc(-50% + ${Math.sin(angle) * distance}px)) scale(1.2)`,
+              opacity: 0.7,
+              offset: 0.6,
+            },
+            {
+              transform: `translate(calc(-50% + ${
+                Math.cos(angle) * distance * 1.2
+              }px), calc(-50% + ${
+                Math.sin(angle) * distance * 1.2
+              }px)) scale(0.5)`,
+              opacity: 0,
+            },
+          ],
+          {
+            duration: duration,
+            easing: "cubic-bezier(0.1, 0.8, 0.2, 1)",
+          }
+        );
+
+        setTimeout(() => {
+          heart.remove();
+        }, duration);
+      }, Math.random() * 1500);
+    }
+  }
+
+  // Add hat to blob for holidays
+  function addHat(emoji) {
+    const hat = document.createElement("div");
+    hat.textContent = emoji;
+    Object.assign(hat.style, {
+      position: "absolute",
+      fontSize: "30px",
+      top: "-25px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      zIndex: "10001",
+    });
+
+    // Add a subtle bobbing animation
+    hat.animate(
+      [
+        { transform: "translateX(-50%) translateY(0px)" },
+        { transform: "translateX(-50%) translateY(-3px)" },
+        { transform: "translateX(-50%) translateY(0px)" },
+      ],
+      {
+        duration: 2000,
+        iterations: Infinity,
+        easing: "ease-in-out",
+      }
+    );
+
+    character.appendChild(hat);
+
+    // Remove after some time
+    setTimeout(() => {
+      if (hat.parentNode === character) {
+        character.removeChild(hat);
+      }
+    }, 60000); // Remove after a minute
+  }
+
+  // Add smooth entrance animation when blob first appears
+  function addEntranceAnimation() {
+    // Start off-screen
+    character.style.transform = "translateY(100vh)";
+    character.style.opacity = "0";
+
+    // Animate entrance after a delay
+    setTimeout(() => {
+      // Create an animation
+      const enterAnimation = character.animate(
+        [
+          { transform: "translateY(100vh) scale(0.8)", opacity: 0 },
+          { transform: "translateY(0) scale(1.1)", opacity: 1, offset: 0.8 },
+          { transform: "translateY(0) scale(1)", opacity: 1 },
+        ],
+        {
+          duration: 1200,
+          easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          fill: "forwards",
+        }
+      );
+
+      enterAnimation.onfinish = () => {
+        character.style.transform = "";
+        character.style.opacity = "1";
+      };
+    }, 800);
+  }
+
+  // Add scroll-reactive animations
+  window.addEventListener("scroll", function () {
+    // Get scroll position
+    const scrollPos = window.scrollY;
+    const maxScroll = document.body.scrollHeight - window.innerHeight;
+    const scrollPercentage = scrollPos / maxScroll;
+
+    // Different reactions based on scroll depth
+    if (scrollPercentage > 0.95 && !isSpeaking) {
+      // Near the bottom of the page
+      setExpression("excited");
+      if (Math.random() < 0.2) {
+        // Don't speak too often
+        speak(
+          "Wow, you've reached the bottom! Thanks for exploring everything!"
+        );
+      }
+    } else if (
+      scrollPercentage > 0.8 &&
+      scrollPercentage < 0.9 &&
+      !isSpeaking &&
+      Math.random() < 0.1
+    ) {
+      // Almost at the bottom
+      setExpression("surprised");
+      speak("Almost at the end! Keep going!");
+    } else if (
+      scrollPercentage > 0.5 &&
+      scrollPercentage < 0.6 &&
+      !isSpeaking &&
+      Math.random() < 0.1
+    ) {
+      // Middle of the page
+      speak("You're halfway through! So much cool stuff, right?");
+    }
+
+    // Add parallax effect to blob based on scroll
+    if (!isFollowingCursor && !isExploring) {
+      const parallaxAmount = scrollPos * 0.05;
+      character.style.transform = `translateY(${parallaxAmount}px)`;
+    }
+  });
+
+  // Initialize the blob memory
+  loadBlobMemory();
+
+  // Add entrance animation
+  addEntranceAnimation();
+
+  // Check for special dates
+  checkSpecialDates();
+
+  // Detect website color theme
+  detectColorTheme();
+  setInterval(detectColorTheme, 5000); // Check periodically for theme changes
+
+  // Update any click interactions to track them
+  document.addEventListener("click", function (e) {
+    const blobRect = character.getBoundingClientRect();
+    const distX = e.clientX - (blobRect.left + blobRect.width / 2);
+    const distY = e.clientY - (blobRect.top + blobRect.height / 2);
+    const distance = Math.sqrt(distX * distX + distY * distY);
+
+    if (distance < 100) {
+      trackInteraction();
+    }
+  });
+
+  // Update the section memory when sections change
+  function updateCurrentSection(currentSection) {
+    if (currentSection && currentSection !== lastVisitedSection) {
+      updateSectionMemory(currentSection);
+    }
+  }
 });
