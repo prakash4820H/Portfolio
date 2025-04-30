@@ -722,5 +722,51 @@
     <script src="js/floating-character.js"></script>
     <!-- Test script -->
     <script src="js/test-script.js"></script>
+    <!-- Inline test script -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("Inline script executing!");
+
+        // Create a visible marker for the inline script
+        const inlineTestElement = document.createElement("div");
+        inlineTestElement.style.position = "fixed";
+        inlineTestElement.style.top = "60px";
+        inlineTestElement.style.left = "10px";
+        inlineTestElement.style.padding = "10px";
+        inlineTestElement.style.background = "blue";
+        inlineTestElement.style.color = "white";
+        inlineTestElement.style.zIndex = "10000";
+        inlineTestElement.textContent = "Inline script working!";
+
+        document.body.appendChild(inlineTestElement);
+
+        // Try to initialize the floating blob manually
+        try {
+          console.log("Attempting to initialize floating blob manually");
+          // Check if the floating-character.js file has been loaded
+          if (typeof character === "undefined") {
+            console.error(
+              "Floating character object not found - script may not be loading correctly"
+            );
+
+            // Create an error notification
+            const errorElement = document.createElement("div");
+            errorElement.style.position = "fixed";
+            errorElement.style.top = "110px";
+            errorElement.style.left = "10px";
+            errorElement.style.padding = "10px";
+            errorElement.style.background = "red";
+            errorElement.style.color = "white";
+            errorElement.style.zIndex = "10000";
+            errorElement.textContent =
+              "Error: Floating character script not loading!";
+
+            document.body.appendChild(errorElement);
+          }
+        } catch (error) {
+          console.error("Error in manual blob initialization:", error);
+        }
+      });
+    </script>
   </body>
 </html>
