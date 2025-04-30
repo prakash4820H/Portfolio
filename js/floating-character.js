@@ -408,6 +408,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "sleepy",
     "uwu", // Added a cute "uwu" expression
     "bouncy", // Added a cute bouncy expression
+    "spooky", // New spooky expression
   ];
 
   // Cute color schemes for different moods - now with enhanced gradients
@@ -418,9 +419,10 @@ document.addEventListener("DOMContentLoaded", function () {
     sleepy: "radial-gradient(circle at 30% 25%, #efe5ff, #d3c5f8, #c4b2f5)", // Lavender
     uwu: "radial-gradient(circle at 30% 25%, #ffe5e7, #ffccd0, #ffb8bd)", // Soft coral
     bouncy: "radial-gradient(circle at 30% 25%, #d9f2ff, #b8e6ff, #a0d8ff)", // Sky blue
+    spooky: "radial-gradient(circle at 30% 25%, #c9c3de, #ada5c7, #8679ae)", // Purple/ghostly
   };
 
-  // Function to make the blob speak
+  // Function to make the blob speak with typed animation
   function speak(message, duration = 3000) {
     // Don't interrupt if already speaking, queue it up
     if (isSpeaking) {
@@ -428,8 +430,8 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Update speech bubble
-    speechBubble.textContent = message;
+    // Clear the speech bubble
+    speechBubble.textContent = "";
 
     // Position the speech bubble based on blob's position on screen
     positionSpeechBubble();
@@ -442,11 +444,26 @@ document.addEventListener("DOMContentLoaded", function () {
     // Clear any existing timer
     clearTimeout(speechTimer);
 
-    // Set timer to hide speech bubble
+    // Type out the message one character at a time
+    let charIndex = 0;
+    const typingSpeed = Math.max(30, Math.min(70, 500 / message.length)); // Between 30-70ms per char, adjusted for message length
+
+    function typeNextChar() {
+      if (charIndex < message.length) {
+        speechBubble.textContent += message.charAt(charIndex);
+        charIndex++;
+        setTimeout(typeNextChar, typingSpeed);
+      }
+    }
+
+    // Start typing
+    typeNextChar();
+
+    // Set timer to hide speech bubble after typed animation plus viewing time
     speechTimer = setTimeout(() => {
       speechBubble.style.opacity = "0";
       isSpeaking = false;
-    }, duration);
+    }, duration + typingSpeed * message.length);
   }
 
   // Function to position the speech bubble based on blob position
@@ -476,6 +493,9 @@ document.addEventListener("DOMContentLoaded", function () {
       case "bouncy":
         borderColor = "#a0d8ff";
         break; // Sky blue
+      case "spooky":
+        borderColor = "#c9c3de";
+        break; // Purple/ghostly
     }
 
     // If blob is near the right edge of the screen, put bubble on the left
@@ -524,6 +544,10 @@ document.addEventListener("DOMContentLoaded", function () {
     leftCheek.style.opacity = "0.6";
     rightCheek.style.opacity = "0.6";
 
+    // Remove any additional elements that might have been added
+    const extraEyes = character.querySelectorAll(".extra-eye");
+    extraEyes.forEach((eye) => eye.remove());
+
     // Add subtle shadow adjustment for each mood
     switch (expression) {
       case "happy":
@@ -561,6 +585,12 @@ document.addEventListener("DOMContentLoaded", function () {
           "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.8), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
         character.style.filter =
           "drop-shadow(0 8px 25px rgba(160, 216, 255, 0.5))";
+        break;
+      case "spooky":
+        character.style.boxShadow =
+          "0 10px 25px rgba(0, 0, 0, 0.2), inset 0 -10px 15px rgba(255, 255, 255, 0.4), inset 5px -5px 15px rgba(0, 0, 0, 0.1)";
+        character.style.filter =
+          "drop-shadow(0 8px 20px rgba(134, 121, 174, 0.5))";
         break;
     }
 
@@ -718,6 +748,97 @@ document.addEventListener("DOMContentLoaded", function () {
         leftPupil.style.height = "12px";
         rightPupil.style.width = "12px";
         rightPupil.style.height = "12px";
+        break;
+
+      case "spooky":
+        // Spooky zigzag mouth
+        Object.assign(mouth.style, {
+          width: "40px",
+          height: "15px",
+          border: "none",
+          background: "transparent",
+          position: "relative",
+        });
+
+        // Remove any existing detail elements
+        while (mouth.firstChild) {
+          mouth.removeChild(mouth.firstChild);
+        }
+
+        // Create spooky zigzag mouth
+        const spookyMouth = document.createElement("div");
+        Object.assign(spookyMouth.style, {
+          width: "40px",
+          height: "15px",
+          borderBottom: "none",
+          position: "absolute",
+          top: "0",
+          left: "0",
+        });
+
+        // Create SVG for zigzag mouth
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", "40");
+        svg.setAttribute("height", "15");
+
+        const path = document.createElementNS(svgNS, "path");
+        path.setAttribute(
+          "d",
+          "M0,8 Q5,3 10,8 Q15,13 20,8 Q25,3 30,8 Q35,13 40,8"
+        );
+        path.setAttribute("stroke", "#333");
+        path.setAttribute("stroke-width", "3");
+        path.setAttribute("fill", "none");
+
+        svg.appendChild(path);
+        spookyMouth.appendChild(svg);
+        mouth.appendChild(spookyMouth);
+
+        // Spooky eyes - make them more intense
+        leftPupil.style.backgroundColor = "#6e5887";
+        rightPupil.style.backgroundColor = "#6e5887";
+        leftPupil.style.width = "11px";
+        leftPupil.style.height = "11px";
+        rightPupil.style.width = "11px";
+        rightPupil.style.height = "11px";
+
+        // Add a third eye for extra spookiness
+        const thirdEye = document.createElement("div");
+        thirdEye.className = "blob-eye extra-eye";
+        Object.assign(thirdEye.style, {
+          width: "20px",
+          height: "20px",
+          backgroundColor: "white",
+          border: "3px solid #333",
+          borderRadius: "50%",
+          position: "absolute",
+          overflow: "hidden",
+          top: "25px",
+          left: "calc(50% - 10px)",
+        });
+
+        const thirdPupil = document.createElement("div");
+        thirdPupil.className = "blob-pupil";
+        Object.assign(thirdPupil.style, {
+          position: "absolute",
+          width: "9px",
+          height: "9px",
+          backgroundColor: "#6e5887",
+          borderRadius: "50%",
+          top: "6px",
+          left: "6px",
+          transition: "all 0.2s ease",
+        });
+
+        thirdEye.appendChild(thirdPupil);
+        face.appendChild(thirdEye);
+
+        // Spooky raised eyebrows
+        leftEyebrow.style.opacity = "1";
+        rightEyebrow.style.opacity = "1";
+        leftEyebrow.style.transform = "rotate(20deg) translateY(-5px)";
+        rightEyebrow.style.transform = "rotate(-20deg) translateY(-5px)";
         break;
     }
   }
@@ -1784,5 +1905,369 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // Add day/night awareness
+  function checkDayNightCycle() {
+    const hour = new Date().getHours();
+    const isNight = hour < 6 || hour >= 19; // Night time between 7pm and 6am
+
+    if (isNight && !character.classList.contains("night-mode")) {
+      // Switch to night mode occasionally
+      if (Math.random() < 0.7 && !isSpeaking) {
+        character.classList.add("night-mode");
+        setExpression("sleepy");
+        speak("It's getting late! *yawn*");
+
+        // Add a soft glow to the blob at night
+        character.style.boxShadow =
+          "0 10px 25px rgba(0, 0, 0, 0.15), inset 0 -10px 15px rgba(255, 255, 255, 0.3), inset 5px -5px 15px rgba(0, 0, 0, 0.1)";
+      }
+    } else if (!isNight && character.classList.contains("night-mode")) {
+      // Switch back to day mode
+      character.classList.remove("night-mode");
+      setExpression("happy");
+      speak("Good morning! A new day!");
+
+      // Restore normal shadow
+      character.style.boxShadow =
+        "0 10px 25px rgba(0, 0, 0, 0.1), inset 0 -10px 15px rgba(255, 255, 255, 0.7), inset 5px -5px 15px rgba(0, 0, 0, 0.05)";
+    }
+  }
+
+  // Check day/night cycle every 5 minutes
+  setInterval(checkDayNightCycle, 300000);
+
+  // Run once on initialization
+  setTimeout(checkDayNightCycle, 5000);
+
+  // 'G' key - Ghost mode (new spooky expression)
+  document.addEventListener("keydown", function (e) {
+    if (
+      e.code === "KeyG" &&
+      e.target.tagName !== "INPUT" &&
+      e.target.tagName !== "TEXTAREA"
+    ) {
+      setExpression("spooky");
+      speak("OoOoOoOoh! I'm a spoOoOoky ghost!");
+
+      // Add floating and fading animation
+      character.style.animation = "float-ghost 3s ease-in-out infinite";
+
+      // Add ghost animation styles if not already present
+      if (!document.getElementById("ghost-animation-style")) {
+        const style = document.createElement("style");
+        style.id = "ghost-animation-style";
+        style.textContent = `
+          @keyframes float-ghost {
+            0% { transform: translateY(0) translateX(0); opacity: 0.9; }
+            50% { transform: translateY(-15px) translateX(5px); opacity: 0.8; }
+            100% { transform: translateY(0) translateX(0); opacity: 0.9; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Return to normal after a while
+      setTimeout(() => {
+        character.style.animation = "";
+        setExpression("happy");
+      }, 7000);
+    }
+  });
+
   console.log("Floating blob with expressions initialized");
+
+  // Check weather and adjust blob appearance accordingly
+  async function checkWeather() {
+    try {
+      // Get approximate location from IP (no permission needed)
+      const response = await fetch("https://geolocation-db.com/json/");
+      const locationData = await response.json();
+
+      if (locationData && locationData.latitude && locationData.longitude) {
+        // Use OpenWeatherMap API with your API key (using free tier)
+        // Note: Replace 'YOUR_API_KEY' with an actual OpenWeatherMap API key if needed
+        const weatherResponse = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?lat=${locationData.latitude}&lon=${locationData.longitude}&appid=YOUR_API_KEY&units=metric`
+        );
+
+        // If we can't get weather data, we'll silently fail
+        if (!weatherResponse.ok) return;
+
+        const weatherData = await weatherResponse.json();
+
+        // React to different weather conditions
+        if (weatherData.weather && weatherData.weather.length > 0) {
+          const weatherCondition = weatherData.weather[0].main.toLowerCase();
+
+          // Don't interrupt if already speaking
+          if (isSpeaking) return;
+
+          if (
+            weatherCondition.includes("rain") ||
+            weatherCondition.includes("drizzle")
+          ) {
+            setExpression("sleepy");
+            speak("Looks rainy outside! Good thing I'm here to cheer you up!");
+
+            // Add rain animation to blob
+            addWeatherEffect("rain");
+          } else if (weatherCondition.includes("snow")) {
+            setExpression("surprised");
+            speak("It's snowing! ❄️ Brr, looks cold out there!");
+
+            // Add snow animation to blob
+            addWeatherEffect("snow");
+          } else if (weatherCondition.includes("thunderstorm")) {
+            setExpression("spooky");
+            speak("Thunder and lightning! How exciting!");
+
+            // Add lightning effect
+            addWeatherEffect("thunder");
+          } else if (weatherCondition.includes("clear")) {
+            setExpression("happy");
+            speak("What a lovely clear day today!");
+          } else if (weatherCondition.includes("cloud")) {
+            setExpression("sleepy");
+            speak("A bit cloudy today, but still nice!");
+          }
+        }
+      }
+    } catch (error) {
+      // Silently fail - weather feature is non-critical
+      console.log("Weather feature unavailable");
+    }
+  }
+
+  // Add weather effect animations
+  function addWeatherEffect(effect) {
+    // Add weather particles container if not already present
+    let weatherContainer = character.querySelector(".weather-effects");
+    if (!weatherContainer) {
+      weatherContainer = document.createElement("div");
+      weatherContainer.className = "weather-effects";
+      Object.assign(weatherContainer.style, {
+        position: "absolute",
+        width: "100%",
+        height: "100%",
+        overflow: "hidden",
+        borderRadius: "55%",
+        pointerEvents: "none",
+        zIndex: "10001",
+      });
+      character.appendChild(weatherContainer);
+    }
+
+    // Clear any existing effects
+    weatherContainer.innerHTML = "";
+
+    if (effect === "rain") {
+      // Add a few raindrops
+      for (let i = 0; i < 5; i++) {
+        createRaindrop(weatherContainer);
+      }
+
+      // Continue creating raindrops periodically
+      const rainInterval = setInterval(() => {
+        if (weatherContainer.children.length < 10) {
+          createRaindrop(weatherContainer);
+        }
+      }, 800);
+
+      // Stop after a while
+      setTimeout(() => {
+        clearInterval(rainInterval);
+        setTimeout(() => {
+          weatherContainer.remove();
+        }, 3000);
+      }, 8000);
+    } else if (effect === "snow") {
+      // Add a few snowflakes
+      for (let i = 0; i < 8; i++) {
+        createSnowflake(weatherContainer);
+      }
+
+      // Continue creating snowflakes periodically
+      const snowInterval = setInterval(() => {
+        if (weatherContainer.children.length < 15) {
+          createSnowflake(weatherContainer);
+        }
+      }, 800);
+
+      // Stop after a while
+      setTimeout(() => {
+        clearInterval(snowInterval);
+        setTimeout(() => {
+          weatherContainer.remove();
+        }, 3000);
+      }, 8000);
+    } else if (effect === "thunder") {
+      // Create lightning effect
+      flashLightning(weatherContainer);
+
+      // Add more lightning flashes
+      setTimeout(() => flashLightning(weatherContainer), 1500);
+      setTimeout(() => flashLightning(weatherContainer), 3000);
+
+      // Remove effects after a while
+      setTimeout(() => {
+        weatherContainer.remove();
+      }, 5000);
+    }
+  }
+
+  // Create a raindrop element
+  function createRaindrop(container) {
+    const raindrop = document.createElement("div");
+    Object.assign(raindrop.style, {
+      position: "absolute",
+      background:
+        "linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.6))",
+      width: "2px",
+      height: Math.random() * 10 + 10 + "px",
+      top: "-10px",
+      left: Math.random() * 100 + "%",
+      borderRadius: "2px",
+      opacity: "0.7",
+      transform: "rotate(10deg)",
+      transition: "top 1s linear, opacity 0.5s linear",
+    });
+
+    container.appendChild(raindrop);
+
+    // Animate raindrop falling
+    setTimeout(() => {
+      raindrop.style.top = "110%";
+    }, 50);
+
+    // Remove raindrop after animation
+    setTimeout(() => {
+      raindrop.remove();
+    }, 1500);
+  }
+
+  // Create a snowflake element
+  function createSnowflake(container) {
+    const snowflake = document.createElement("div");
+    const size = Math.random() * 4 + 3;
+    Object.assign(snowflake.style, {
+      position: "absolute",
+      background: "white",
+      width: size + "px",
+      height: size + "px",
+      top: "-5px",
+      left: Math.random() * 100 + "%",
+      borderRadius: "50%",
+      opacity: "0.8",
+      boxShadow: "0 0 2px rgba(255,255,255,0.8)",
+      transition: "top 3s linear, left 2s ease-in-out, opacity 0.5s linear",
+    });
+
+    container.appendChild(snowflake);
+
+    // Animate snowflake falling with drift
+    setTimeout(() => {
+      const drift = Math.random() * 40 - 20;
+      const newLeft = parseFloat(snowflake.style.left) + drift;
+      snowflake.style.left = newLeft + "%";
+      snowflake.style.top = "110%";
+    }, 50);
+
+    // Remove snowflake after animation
+    setTimeout(() => {
+      snowflake.remove();
+    }, 3000);
+  }
+
+  // Create lightning flash effect
+  function flashLightning(container) {
+    const flash = document.createElement("div");
+    Object.assign(flash.style, {
+      position: "absolute",
+      top: "0",
+      left: "0",
+      width: "100%",
+      height: "100%",
+      backgroundColor: "white",
+      opacity: "0",
+      transition: "opacity 0.1s ease",
+      borderRadius: "55%",
+      zIndex: "1",
+    });
+
+    container.appendChild(flash);
+
+    // Flash animation
+    setTimeout(() => {
+      flash.style.opacity = "0.7";
+      setTimeout(() => {
+        flash.style.opacity = "0";
+        setTimeout(() => {
+          flash.style.opacity = "0.5";
+          setTimeout(() => {
+            flash.style.opacity = "0";
+            flash.remove();
+          }, 50);
+        }, 80);
+      }, 50);
+    }, 50);
+  }
+
+  // Check weather once on load (with delay to avoid initial overload)
+  setTimeout(checkWeather, 10000);
+
+  // Responsive positioning - adjust blob for different screen sizes
+  function adjustForScreenSize() {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Handle mobile screens
+    if (viewportWidth < 768) {
+      // On mobile, position blob at the bottom right by default
+      if (!character.hasAttribute("data-user-positioned")) {
+        characterX = viewportWidth - 150;
+        characterY = viewportHeight - 150;
+        character.style.left = characterX + "px";
+        character.style.top = characterY + "px";
+
+        // Make blob smaller on very small screens
+        if (viewportWidth < 400) {
+          character.style.width = "100px";
+          character.style.height = "100px";
+        } else {
+          character.style.width = "120px";
+          character.style.height = "120px";
+        }
+
+        // Ensure speech bubble is readable
+        speechBubble.style.maxWidth = Math.min(200, viewportWidth * 0.6) + "px";
+      }
+    } else {
+      // Reset to normal size on larger screens
+      if (!character.getAttribute("data-custom-size")) {
+        character.style.width = "130px";
+        character.style.height = "130px";
+      }
+
+      // Reset speech bubble size
+      speechBubble.style.maxWidth = "220px";
+    }
+  }
+
+  // Run the screen size adjustment on resize
+  window.addEventListener("resize", adjustForScreenSize);
+
+  // Run once at start
+  setTimeout(adjustForScreenSize, 1000);
+
+  // Mark when user has manually positioned the blob
+  document.addEventListener("click", function (e) {
+    const blobRect = character.getBoundingClientRect();
+    const distX = e.clientX - (blobRect.left + blobRect.width / 2);
+    const distY = e.clientY - (blobRect.top + blobRect.height / 2);
+    const distance = Math.sqrt(distX * distX + distY * distY);
+
+    if (distance < 100) {
+      character.setAttribute("data-user-positioned", "true");
+    }
+  });
 });
