@@ -2874,4 +2874,470 @@ document.addEventListener("DOMContentLoaded", function () {
       updateSectionMemory(currentSection);
     }
   }
+
+  // Accessibility and multilingual support
+  const accessibilitySettings = {
+    enabled: true,
+    screenReaderFriendly: true,
+    reduceMotion: false,
+    language: "en", // Default language
+  };
+
+  // Translations for blob messages
+  const translations = {
+    en: {
+      greetings: [
+        "Hi there! 👋",
+        "Welcome to my site! ✨",
+        "Hello! Nice to see you!",
+        "Thanks for visiting! 😊",
+        "Hey! Look around!",
+      ],
+      idle: [
+        "Finding everything okay?",
+        "Check out my projects!",
+        "Feel free to explore!",
+        "Need any help?",
+        "Don't be shy, I don't bite!",
+        "Like what you see?",
+      ],
+      hover: [
+        "Hello there!",
+        "Oh! Hi!",
+        "Need something?",
+        "You found me!",
+        "I'm here to help!",
+        "Double-click to make me follow you!",
+      ],
+      following: [
+        "I'll follow you!",
+        "Leading the way?",
+        "Where are we going?",
+        "I'm right behind you!",
+        "This is fun!",
+      ],
+      sections: {
+        about: [
+          "That's me! I'm a web developer, game modder, and QA tester!",
+          "I studied at KL University in India!",
+          "I love creating websites and game mods!",
+          "Want to know more about me?",
+        ],
+        skills: [
+          "Check out my skills! Pretty cool, right?",
+          "I'm great at frontend development!",
+          "I use AI tools to boost my coding efficiency!",
+          "I've worked with React, Next.js, and more!",
+        ],
+        experience: [
+          "Here's my work experience!",
+          "I've worked on WorldBox modding!",
+          "I was a QA tester for WorldBox!",
+          "I had a data analytics internship too!",
+        ],
+        projects: [
+          "These are my favorite projects!",
+          "Check out my e-commerce projects!",
+          "I made a unit mod for WorldBox!",
+          "Want to see more? Check my GitHub!",
+        ],
+        certifications: [
+          "I've got certifications in AWS and Azure!",
+          "These certifications show my technical knowledge!",
+          "I'm continuously learning new skills!",
+        ],
+        blog: [
+          "Read my technical blog posts!",
+          "I write about web development and more!",
+          "Want to learn about e-commerce development?",
+        ],
+        contact: [
+          "Want to get in touch? Contact me here!",
+          "I'd love to hear from you!",
+          "Send me a message, I'll reply soon!",
+          "Let's connect and collaborate!",
+        ],
+      },
+      accessibility: {
+        blobDescription: "Interactive character assistant for the portfolio",
+        followingMode: "Blob is now following your cursor",
+        stoppedFollowing: "Blob has stopped following your cursor",
+        exploring: "Blob is exploring the page",
+        expressionChanged: "Blob looks {expression}",
+      },
+    },
+    es: {
+      greetings: [
+        "¡Hola! 👋",
+        "¡Bienvenido a mi sitio! ✨",
+        "¡Hola! ¡Encantado de verte!",
+        "¡Gracias por visitar! 😊",
+        "¡Oye! ¡Mira alrededor!",
+      ],
+      idle: [
+        "¿Encuentras todo bien?",
+        "¡Revisa mis proyectos!",
+        "¡Explora tranquilamente!",
+        "¿Necesitas ayuda?",
+        "No seas tímido, ¡no muerdo!",
+        "¿Te gusta lo que ves?",
+      ],
+      hover: [
+        "¡Hola!",
+        "¡Oh! ¡Hola!",
+        "¿Necesitas algo?",
+        "¡Me encontraste!",
+        "¡Estoy aquí para ayudar!",
+        "¡Haz doble clic para que te siga!",
+      ],
+      following: [
+        "¡Te seguiré!",
+        "¿Liderando el camino?",
+        "¿A dónde vamos?",
+        "¡Estoy detrás de ti!",
+        "¡Esto es divertido!",
+      ],
+      sections: {
+        about: [
+          "¡Ese soy yo! ¡Desarrollador web, modder de juegos y tester de QA!",
+          "¡Estudié en KL University en India!",
+          "¡Me encanta crear sitios web y mods para juegos!",
+          "¿Quieres saber más sobre mí?",
+        ],
+        skills: [
+          "¡Mira mis habilidades! ¡Genial, ¿verdad?!",
+          "¡Soy excelente en desarrollo frontend!",
+          "¡Uso herramientas de IA para aumentar mi eficiencia de codificación!",
+          "¡He trabajado con React, Next.js y más!",
+        ],
+        experience: [
+          "¡Aquí está mi experiencia laboral!",
+          "¡He trabajado en modding de WorldBox!",
+          "¡Fui tester de QA para WorldBox!",
+          "¡También tuve una pasantía en análisis de datos!",
+        ],
+        projects: [
+          "¡Estos son mis proyectos favoritos!",
+          "¡Mira mis proyectos de comercio electrónico!",
+          "¡Hice un mod de unidades para WorldBox!",
+          "¿Quieres ver más? ¡Revisa mi GitHub!",
+        ],
+        certifications: [
+          "¡Tengo certificaciones en AWS y Azure!",
+          "¡Estas certificaciones muestran mi conocimiento técnico!",
+          "¡Continúo aprendiendo nuevas habilidades!",
+        ],
+        blog: [
+          "¡Lee mis publicaciones técnicas!",
+          "¡Escribo sobre desarrollo web y más!",
+          "¿Quieres aprender sobre desarrollo de comercio electrónico?",
+        ],
+        contact: [
+          "¿Quieres ponerte en contacto? ¡Contáctame aquí!",
+          "¡Me encantaría saber de ti!",
+          "¡Envíame un mensaje, responderé pronto!",
+          "¡Conectemos y colaboremos!",
+        ],
+      },
+      accessibility: {
+        blobDescription:
+          "Asistente de personaje interactivo para el portafolio",
+        followingMode: "El blob ahora está siguiendo tu cursor",
+        stoppedFollowing: "El blob ha dejado de seguir tu cursor",
+        exploring: "El blob está explorando la página",
+        expressionChanged: "El blob parece {expression}",
+      },
+    },
+  };
+
+  // Add language detection and user preference
+  function detectLanguage() {
+    try {
+      // First check if user has a preference stored
+      const storedLang = localStorage.getItem("blobLanguage");
+      if (storedLang && translations[storedLang]) {
+        accessibilitySettings.language = storedLang;
+        return;
+      }
+
+      // Check browser language
+      const browserLang = navigator.language.split("-")[0];
+      if (translations[browserLang]) {
+        accessibilitySettings.language = browserLang;
+      }
+    } catch (error) {
+      console.log("Error detecting language:", error);
+    }
+  }
+
+  // Get translation for a message
+  function getTranslation(category, key = null, fallback = "") {
+    try {
+      const lang = accessibilitySettings.language;
+
+      if (!translations[lang]) {
+        return fallback;
+      }
+
+      if (!key && Array.isArray(translations[lang][category])) {
+        // Return random message from array
+        const messages = translations[lang][category];
+        return messages[Math.floor(Math.random() * messages.length)];
+      } else if (!key && typeof translations[lang][category] === "string") {
+        // Return direct string
+        return translations[lang][category];
+      } else if (
+        key &&
+        translations[lang][category] &&
+        translations[lang][category][key]
+      ) {
+        // Return specific nested key or array item
+        const value = translations[lang][category][key];
+
+        if (Array.isArray(value)) {
+          return value[Math.floor(Math.random() * value.length)];
+        } else {
+          return value;
+        }
+      }
+
+      return fallback;
+    } catch (error) {
+      console.log("Translation error:", error);
+      return fallback;
+    }
+  }
+
+  // Update accessibility settings
+  function updateAccessibilitySettings() {
+    try {
+      // Check for reduced motion preference
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      accessibilitySettings.reduceMotion = prefersReducedMotion;
+
+      // Apply reduced motion settings if needed
+      if (prefersReducedMotion) {
+        // Slow down or eliminate animations
+        transitionDuration = 1500; // Slower transitions
+
+        // Use simpler animations
+        character.style.transition =
+          "transform 0.5s linear, background 0.8s ease, filter 0.8s ease, box-shadow 0.8s ease";
+      }
+
+      // Add appropriate ARIA attributes
+      character.setAttribute("role", "img");
+      character.setAttribute(
+        "aria-label",
+        getTranslation("accessibility", "blobDescription")
+      );
+      character.setAttribute("tabindex", "0"); // Make focusable
+
+      // Add visual focus indicator
+      character.addEventListener("focus", function () {
+        character.style.outline = "3px solid #2563eb";
+        character.style.outlineOffset = "5px";
+
+        // Announce to screen readers
+        if (accessibilitySettings.screenReaderFriendly) {
+          speak(getTranslation("hover"), 3000);
+        }
+      });
+
+      character.addEventListener("blur", function () {
+        character.style.outline = "none";
+        character.style.outlineOffset = "0";
+      });
+
+      // Add keyboard interaction to toggle follow mode
+      character.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          // Toggle following mode with keyboard
+          isFollowingCursor = !isFollowingCursor;
+
+          if (isFollowingCursor) {
+            setExpression("bouncy");
+            speak(getTranslation("following"));
+
+            // Announce to screen readers
+            if (accessibilitySettings.screenReaderFriendly) {
+              const announcement = document.createElement("div");
+              announcement.setAttribute("role", "status");
+              announcement.setAttribute("aria-live", "polite");
+              announcement.style.position = "absolute";
+              announcement.style.width = "1px";
+              announcement.style.height = "1px";
+              announcement.style.overflow = "hidden";
+              announcement.textContent = getTranslation(
+                "accessibility",
+                "followingMode"
+              );
+              document.body.appendChild(announcement);
+
+              // Remove after announcement
+              setTimeout(() => {
+                document.body.removeChild(announcement);
+              }, 1000);
+            }
+          } else {
+            setExpression("happy");
+            speak(getTranslation("idle"));
+
+            // Announce to screen readers
+            if (accessibilitySettings.screenReaderFriendly) {
+              const announcement = document.createElement("div");
+              announcement.setAttribute("role", "status");
+              announcement.setAttribute("aria-live", "polite");
+              announcement.style.position = "absolute";
+              announcement.style.width = "1px";
+              announcement.style.height = "1px";
+              announcement.style.overflow = "hidden";
+              announcement.textContent = getTranslation(
+                "accessibility",
+                "stoppedFollowing"
+              );
+              document.body.appendChild(announcement);
+
+              // Remove after announcement
+              setTimeout(() => {
+                document.body.removeChild(announcement);
+              }, 1000);
+            }
+          }
+        }
+      });
+
+      // Make speech bubble accessible
+      speechBubble.setAttribute("role", "status");
+      speechBubble.setAttribute("aria-live", "polite");
+
+      // Add language switcher button
+      addLanguageSwitcher();
+    } catch (error) {
+      console.log("Error updating accessibility settings:", error);
+    }
+  }
+
+  // Add language switcher button
+  function addLanguageSwitcher() {
+    // Create language toggle button
+    const langToggle = document.createElement("button");
+    langToggle.textContent = accessibilitySettings.language.toUpperCase();
+    Object.assign(langToggle.style, {
+      position: "absolute",
+      right: "-25px",
+      bottom: "-5px",
+      background: "#2563eb",
+      color: "white",
+      border: "none",
+      borderRadius: "50%",
+      width: "24px",
+      height: "24px",
+      fontSize: "10px",
+      fontWeight: "bold",
+      cursor: "pointer",
+      zIndex: "10001",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+    });
+
+    // Toggle language on click
+    langToggle.addEventListener("click", function (e) {
+      e.stopPropagation();
+
+      // Cycle through available languages
+      const langs = Object.keys(translations);
+      const currentIndex = langs.indexOf(accessibilitySettings.language);
+      const nextIndex = (currentIndex + 1) % langs.length;
+      accessibilitySettings.language = langs[nextIndex];
+
+      // Update button text
+      langToggle.textContent = accessibilitySettings.language.toUpperCase();
+
+      // Save preference
+      localStorage.setItem("blobLanguage", accessibilitySettings.language);
+
+      // Announce language change
+      speak(getTranslation("greetings"));
+    });
+
+    character.appendChild(langToggle);
+  }
+
+  // Enhanced speak function with accessibility support
+  function speakWithAccessibility(message, duration = 3000) {
+    speak(message, duration);
+
+    // If screen reader support is enabled, create a live region announcement
+    if (
+      accessibilitySettings.screenReaderFriendly &&
+      !speechBubble.hasAttribute("aria-live")
+    ) {
+      speechBubble.setAttribute("aria-live", "polite");
+    }
+  }
+
+  // Override the setExpression function to announce expression changes to screen readers
+  const originalSetExpression = setExpression;
+  setExpression = function (expression) {
+    originalSetExpression(expression);
+
+    // Announce expression change if screen reader friendly
+    if (accessibilitySettings.screenReaderFriendly) {
+      // Map expression names to descriptive text
+      const expressionDescriptions = {
+        happy: "happy",
+        surprised: "surprised",
+        excited: "excited",
+        sleepy: "sleepy",
+        uwu: "cute",
+        bouncy: "bouncy",
+        spooky: "spooky",
+      };
+
+      // Create a hidden live region announcement
+      const announcement = document.createElement("div");
+      announcement.setAttribute("role", "status");
+      announcement.setAttribute("aria-live", "polite");
+      announcement.style.position = "absolute";
+      announcement.style.width = "1px";
+      announcement.style.height = "1px";
+      announcement.style.overflow = "hidden";
+
+      const expressionText = expressionDescriptions[expression] || expression;
+      const template = getTranslation("accessibility", "expressionChanged");
+      announcement.textContent = template.replace(
+        "{expression}",
+        expressionText
+      );
+
+      document.body.appendChild(announcement);
+
+      // Remove after announcement is likely to have been read
+      setTimeout(() => {
+        if (document.body.contains(announcement)) {
+          document.body.removeChild(announcement);
+        }
+      }, 1000);
+    }
+  };
+
+  // Initialize language detection and accessibility
+  detectLanguage();
+  updateAccessibilitySettings();
+
+  // Listen for changes in reduced motion preference
+  window
+    .matchMedia("(prefers-reduced-motion: reduce)")
+    .addEventListener("change", updateAccessibilitySettings);
+
+  // Update greetings and messages to use translations
+  setTimeout(() => {
+    const randomGreeting = getTranslation("greetings");
+    speak(randomGreeting);
+  }, 1000);
 });
