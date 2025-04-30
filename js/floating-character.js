@@ -285,6 +285,10 @@ document.addEventListener("DOMContentLoaded", function () {
   let exploreTargetY = characterY;
   let lastExplorationChange = 0;
 
+  // Path waypoints for more interesting movement
+  let waypoints = [];
+  let currentWaypointIndex = 0;
+
   // Variables to track state transitions
   let transitionTimer = null;
   let isTransitioning = false;
@@ -764,46 +768,27 @@ document.addEventListener("DOMContentLoaded", function () {
     const windowHeight = window.innerHeight;
 
     // Calculate a point within view but not too close to edges
-    const padding = 150;
+    const padding = 100; // Reduced padding to allow more movement area
 
     // Current position within viewport
     const currentX = blobRect.left + blobRect.width / 2;
     const currentY = blobRect.top + blobRect.height / 2;
 
-    // Limit movement to a reasonable distance to prevent teleporting
-    const maxMove = Math.min(300, windowHeight / 3, windowWidth / 3); // More limited movement to stay in view
+    // Generate a path with multiple waypoints
+    generateExplorationPath(
+      currentX,
+      currentY,
+      windowWidth,
+      windowHeight,
+      padding
+    );
 
-    // Encourage exploration across the full width
-    // Bias towards unexplored areas
-    let targetDirection = 0;
-
-    // If we're in the left half, bias towards the right
-    if (currentX < windowWidth / 2) {
-      targetDirection = Math.random() * Math.PI * 0.5 - Math.PI * 0.25; // -45 to +45 degrees
+    // Update exploration target to the first waypoint
+    if (waypoints.length > 0) {
+      currentWaypointIndex = 0;
+      exploreTargetX = waypoints[0].x;
+      exploreTargetY = waypoints[0].y;
     }
-    // If we're in the right half, bias towards the left
-    else {
-      targetDirection = Math.random() * Math.PI * 0.5 + Math.PI * 0.75; // 135 to 225 degrees
-    }
-
-    // Sometimes use completely random direction to avoid getting stuck
-    if (Math.random() < 0.3) {
-      targetDirection = Math.random() * Math.PI * 2;
-    }
-
-    // Calculate distance - random but weighted towards more movement
-    const distance = Math.pow(Math.random(), 0.7) * maxMove;
-
-    // Calculate new position using angle and distance within viewport
-    let newX = currentX + Math.cos(targetDirection) * distance;
-    let newY = currentY + Math.sin(targetDirection) * distance;
-
-    // Keep within viewport boundaries with more generous padding
-    newX = Math.max(padding, Math.min(windowWidth - padding, newX));
-    newY = Math.max(padding, Math.min(windowHeight - padding, newY));
-
-    exploreTargetX = newX;
-    exploreTargetY = newY;
 
     // Change expression to match exploration mood - more variety with cute expressions
     const randomExpression =
@@ -811,26 +796,61 @@ document.addEventListener("DOMContentLoaded", function () {
     setExpression(randomExpression);
 
     // Occasionally say something during exploration
-    if (Math.random() < 0.2) {
+    if (Math.random() < 0.3) {
+      // Increased chance to talk
       const randomMessage =
         idleMessages[Math.floor(Math.random() * idleMessages.length)];
       speak(randomMessage);
     }
+  }
 
-    // Set timeout for next exploration - shorter duration for more activity
-    const explorationDuration = 2000 + Math.random() * 3000; // 2-5 seconds
-    exploreTimer = setTimeout(() => {
-      if (Math.random() < 0.15) {
-        // Sometimes pause briefly
-        isExploring = false;
-        setTimeout(() => {
-          if (!isFollowingCursor) startExploring();
-        }, 800 + Math.random() * 1200); // Shorter pauses
-      } else {
-        // Continue exploring in a new direction
-        if (!isFollowingCursor) startExploring();
-      }
-    }, explorationDuration);
+  // Generate a path with multiple waypoints
+  function generateExplorationPath(
+    startX,
+    startY,
+    windowWidth,
+    windowHeight,
+    padding
+  ) {
+    // Clear previous waypoints
+    waypoints = [];
+
+    // Number of waypoints to generate (2-3 instead of 2-4)
+    const numWaypoints = Math.floor(Math.random() * 2) + 2;
+
+    // Limit movement to a reasonable distance to prevent teleporting
+    const maxMove = Math.min(300, windowHeight / 2.5, windowWidth / 2.5); // Reduced from 400
+
+    // Current position for chain of waypoints
+    let currentX = startX;
+    let currentY = startY;
+
+    // Generate waypoints
+    for (let i = 0; i < numWaypoints; i++) {
+      // Generate a random direction
+      const targetDirection = Math.random() * Math.PI * 2;
+
+      // Calculate distance - random but weighted towards more movement
+      const distance =
+        Math.pow(Math.random(), 0.6) * // Increased from 0.5 for more medium distances
+        maxMove *
+        (0.4 + (i / numWaypoints) * 0.5); // Reduced from 0.5 for slightly slower start
+
+      // Calculate new position
+      let newX = currentX + Math.cos(targetDirection) * distance;
+      let newY = currentY + Math.sin(targetDirection) * distance;
+
+      // Keep within viewport boundaries
+      newX = Math.max(padding, Math.min(windowWidth - padding, newX));
+      newY = Math.max(padding, Math.min(windowHeight - padding, newY));
+
+      // Add to waypoints
+      waypoints.push({ x: newX, y: newY });
+
+      // Update current position for next waypoint
+      currentX = newX;
+      currentY = newY;
+    }
   }
 
   // Track mouse movement
@@ -1034,16 +1054,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Bouncier animation when in bouncy mode
     if (currentExpression === "bouncy") {
-      floatY = Math.sin(Date.now() / 800) * 5;
-      floatX = Math.sin(Date.now() / 1200) * 3;
+      floatY = Math.sin(Date.now() / 900) * 4; // Reduced from 5
+      floatX = Math.sin(Date.now() / 1300) * 2.5; // Reduced from 3
       // Add squash and stretch for bouncy mode - squash at bottom, stretch at top
-      const bouncePhase = Math.sin(Date.now() / 800);
-      squashStretch = bouncePhase > 0.7 ? 0.95 : bouncePhase < -0.7 ? 1.05 : 1;
+      const bouncePhase = Math.sin(Date.now() / 900);
+      squashStretch = bouncePhase > 0.7 ? 0.96 : bouncePhase < -0.7 ? 1.04 : 1; // Reduced from 0.95/1.05
     } else {
-      floatY = Math.sin(Date.now() / 1000) * 3;
-      floatX = Math.sin(Date.now() / 1500) * 2;
+      floatY = Math.sin(Date.now() / 1200) * 2.5; // Reduced from 3, slowed from 1000 to 1200
+      floatX = Math.sin(Date.now() / 1700) * 1.5; // Reduced from 2, slowed from 1500 to 1700
       // More subtle squash and stretch for normal modes
-      squashStretch = 1 + Math.sin(Date.now() / 1000) * 0.02;
+      squashStretch = 1 + Math.sin(Date.now() / 1200) * 0.015; // Reduced from 0.02
     }
 
     // Handle transitioning state specifically
@@ -1095,7 +1115,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // If too far, use faster movement to catch up, otherwise very gentle
       const speed =
-        distance > 300 ? 0.1 : Math.max(0.03, Math.min(0.05, distance / 300));
+        distance > 300 ? 0.08 : Math.max(0.02, Math.min(0.04, distance / 350)); // Reduced from 0.1/0.03/0.05
 
       characterX += dx * speed;
       characterY += dy * speed;
@@ -1124,7 +1144,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Use distance-based easing
       const distance = Math.sqrt(dx * dx + dy * dy);
-      const speed = Math.max(0.006, Math.min(0.015, distance / 500)); // Slightly faster for more movement
+      const speed = Math.max(0.008, Math.min(0.02, distance / 450)); // Reduced from 0.01/0.025/400
 
       characterX += dx * speed;
       characterY += dy * speed;
@@ -1133,28 +1153,48 @@ document.addEventListener("DOMContentLoaded", function () {
       character.style.left = characterX + "px";
       character.style.top = characterY + "px";
 
-      // Look at cursor position with subtle movement
-      const eyeCenterX = window.innerWidth / 2;
-      const eyeCenterY = window.innerHeight / 2;
+      // If we're close enough to the current waypoint, move to the next one
+      if (distance < 10 && waypoints.length > 0) {
+        currentWaypointIndex++;
 
-      // Calculate pupil movement with reduced intensity
-      const pupilXOffset = (mouseX - eyeCenterX) / 250; // Reduced intensity
-      const pupilYOffset = (mouseY - eyeCenterY) / 250; // Reduced intensity
+        // If we've reached the end of the path, generate a new one
+        if (currentWaypointIndex >= waypoints.length) {
+          // Sometimes pause briefly
+          if (Math.random() < 0.2) {
+            // Increased from 0.1 for more pauses
+            isExploring = false;
+            setTimeout(() => {
+              if (!isFollowingCursor) startExploring();
+            }, 800 + Math.random() * 1200); // Increased from 500-1300ms to 800-2000ms
+          } else {
+            // Generate a new path starting from current position
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const padding = 100;
+            generateExplorationPath(
+              characterX,
+              characterY,
+              windowWidth,
+              windowHeight,
+              padding
+            );
+            currentWaypointIndex = 0;
 
-      // Direction of movement (exploration) still influences the eyes slightly
-      const lookDirectionX =
-        Math.sign(dx) * Math.min(1.5, Math.abs(dx) * 0.008);
-      const lookDirectionY =
-        Math.sign(dy) * Math.min(1.5, Math.abs(dy) * 0.008);
+            // Change expression sometimes
+            if (Math.random() < 0.4) {
+              const randomExpression =
+                expressions[Math.floor(Math.random() * expressions.length)];
+              setExpression(randomExpression);
+            }
+          }
+        }
 
-      // Combine cursor position and movement direction (30% movement direction, 70% cursor)
-      // Set target for smooth eye movement
-      targetPupilX =
-        8 +
-        Math.max(-3, Math.min(3, pupilXOffset * 0.7 + lookDirectionX * 0.3));
-      targetPupilY =
-        8 +
-        Math.max(-3, Math.min(3, pupilYOffset * 0.7 + lookDirectionY * 0.3));
+        // Update target to the next waypoint
+        if (isExploring && currentWaypointIndex < waypoints.length) {
+          exploreTargetX = waypoints[currentWaypointIndex].x;
+          exploreTargetY = waypoints[currentWaypointIndex].y;
+        }
+      }
     }
     // Idle state - just floating in place
     else {
@@ -1180,7 +1220,7 @@ document.addEventListener("DOMContentLoaded", function () {
         !clicked &&
         !isTransitioning &&
         !isFollowingCursor &&
-        Date.now() - lastExplorationChange > 3000 // Reduced from 4000 for more activity
+        Date.now() - lastExplorationChange > 3000 // Increased from 2000ms back to 3000ms
       ) {
         lastExplorationChange = Date.now();
         startExploring();
@@ -1287,7 +1327,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }, 1000);
 
   // Begin exploring after a short delay
-  setTimeout(startExploring, 2000);
+  setTimeout(startExploring, 1000);
 
   // Add event listener for scrolling to detect sections
   window.addEventListener("scroll", function () {
@@ -1301,7 +1341,7 @@ document.addEventListener("DOMContentLoaded", function () {
     sections.forEach((section) => {
       const sectionTop = section.offsetTop;
       const sectionHeight = section.offsetHeight;
-      const scrollPosition = window.scrollY + window.innerHeight / 2;
+      const scrollPosition = window.scrollY + window.innerHeight / 3; // Changed from /2 to /3 to detect sections earlier
 
       if (
         scrollPosition >= sectionTop &&
@@ -1311,7 +1351,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // If we've moved to a new section and it has messages, possibly speak
+    // If we've moved to a new section and it has messages, speak
     if (
       currentSection &&
       currentSection !== lastVisitedSection &&
@@ -1319,22 +1359,95 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
       lastVisitedSection = currentSection;
 
-      // Only speak sometimes (30% chance) to avoid being too chatty
-      if (Math.random() < 0.3) {
+      // Increased chance to speak from 30% to 80%
+      if (Math.random() < 0.8) {
         const messages = sectionMessages[currentSection];
         const randomMessage =
           messages[Math.floor(Math.random() * messages.length)];
-        speak(randomMessage);
 
-        // Also change expression sometimes
-        if (Math.random() < 0.5) {
-          const randomExpression =
-            expressions[Math.floor(Math.random() * expressions.length)];
-          setExpression(randomExpression);
-        }
+        // Force the blob to speak with a slight delay for better experience
+        setTimeout(() => {
+          speak(randomMessage, 4000); // Increased duration from 3000 to 4000ms
+
+          // Also change expression to match the section
+          let expressionToUse;
+          switch (currentSection) {
+            case "about":
+              expressionToUse = "happy";
+              break;
+            case "skills":
+              expressionToUse = "excited";
+              break;
+            case "experience":
+              expressionToUse = "bouncy";
+              break;
+            case "projects":
+              expressionToUse = "surprised";
+              break;
+            case "certifications":
+              expressionToUse = "excited";
+              break;
+            case "blog":
+              expressionToUse = "uwu";
+              break;
+            case "contact":
+              expressionToUse = "happy";
+              break;
+            default:
+              expressionToUse =
+                expressions[Math.floor(Math.random() * expressions.length)];
+          }
+          setExpression(expressionToUse);
+        }, 300);
       }
     }
   });
+
+  // Additional scroll handler specifically for sections (runs less frequently)
+  setInterval(function checkSectionVisibility() {
+    // Don't check if already speaking
+    if (isSpeaking) return;
+
+    // Force a check of visible sections
+    const sections = document.querySelectorAll("section[id]");
+    let visibleSection = "";
+
+    // Find which section is most visible in the viewport
+    sections.forEach((section) => {
+      const rect = section.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+
+      // Check if section is at least 40% visible in viewport
+      if (
+        rect.top < viewportHeight * 0.6 &&
+        rect.bottom > viewportHeight * 0.3
+      ) {
+        visibleSection = section.id;
+      }
+    });
+
+    // If we're in a section with messages and it's not the last section we spoke about
+    if (
+      visibleSection &&
+      visibleSection !== lastVisitedSection &&
+      sectionMessages[visibleSection]
+    ) {
+      lastVisitedSection = visibleSection;
+
+      // Higher chance to speak when we explicitly check
+      if (Math.random() < 0.9) {
+        const messages = sectionMessages[visibleSection];
+        const randomMessage =
+          messages[Math.floor(Math.random() * messages.length)];
+        speak(randomMessage, 4000);
+
+        // Change expression sometimes
+        const randomExpression =
+          expressions[Math.floor(Math.random() * expressions.length)];
+        setExpression(randomExpression);
+      }
+    }
+  }, 3000); // Check every 3 seconds
 
   console.log("Floating blob with expressions initialized");
 });
