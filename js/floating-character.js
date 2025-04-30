@@ -1449,5 +1449,312 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }, 3000); // Check every 3 seconds
 
+  // Additional keyboard interactions and easter eggs
+  document.addEventListener("keydown", function (e) {
+    // Don't trigger if user is typing in an input field
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+      return;
+    }
+
+    // Space bar - make blob jump with excitement
+    if (e.code === "Space") {
+      character.style.transform = `translateY(-30px) scale(0.9, 1.1)`;
+      setTimeout(() => {
+        character.style.transform = `translateY(0) scale(1)`;
+        if (Math.random() < 0.5) {
+          speak("Whee! I can jump!");
+          setExpression("excited");
+        }
+      }, 300);
+    }
+
+    // 'B' key - Blob gets bigger temporarily
+    if (e.code === "KeyB") {
+      const originalWidth = character.style.width;
+      const originalHeight = character.style.height;
+
+      character.style.width = "160px";
+      character.style.height = "160px";
+      speak("I'm getting bigger!");
+
+      setTimeout(() => {
+        character.style.width = originalWidth;
+        character.style.height = originalHeight;
+      }, 2000);
+    }
+
+    // 'H' key - Blob says hello
+    if (e.code === "KeyH") {
+      const helloMessages = [
+        "Hello there! 👋",
+        "Hi! Nice to meet you!",
+        "Hey! How's it going?",
+        "Greetings, human!",
+        "Hello! I'm your portfolio buddy!",
+      ];
+      const randomMessage =
+        helloMessages[Math.floor(Math.random() * helloMessages.length)];
+      speak(randomMessage);
+      setExpression("happy");
+    }
+
+    // 'S' key - Blob goes to sleep
+    if (e.code === "KeyS") {
+      setExpression("sleepy");
+      speak("Zzzz... so sleepy...");
+
+      // Show Z's coming from the blob
+      const createSleepZ = () => {
+        const zElement = document.createElement("div");
+        Object.assign(zElement.style, {
+          position: "absolute",
+          fontFamily: "Arial, sans-serif",
+          fontSize: "20px",
+          fontWeight: "bold",
+          color: "#c4b2f5",
+          top: "-20px",
+          left: "60px",
+          opacity: "0",
+          transition: "all 2s ease",
+          zIndex: "10000",
+          textShadow: "0 0 5px rgba(255,255,255,0.7)",
+        });
+        zElement.textContent = "z";
+        character.appendChild(zElement);
+
+        // Animate the Z moving up and fading out
+        setTimeout(() => {
+          Object.assign(zElement.style, {
+            transform: "translate(-30px, -40px) rotate(-10deg)",
+            opacity: "1",
+          });
+
+          setTimeout(() => {
+            Object.assign(zElement.style, {
+              transform: "translate(-50px, -80px) rotate(-20deg)",
+              opacity: "0",
+            });
+
+            // Remove the element after animation
+            setTimeout(() => {
+              character.removeChild(zElement);
+            }, 2000);
+          }, 1000);
+        }, 10);
+      };
+
+      // Create multiple Z's with delays
+      createSleepZ();
+      setTimeout(createSleepZ, 700);
+      setTimeout(createSleepZ, 1400);
+
+      // Wake up after a few seconds
+      setTimeout(() => {
+        setExpression("happy");
+        speak("Oh! I'm awake now!");
+      }, 5000);
+    }
+
+    // 'D' key - Blob dances
+    if (e.code === "KeyD") {
+      speak("Let's dance!");
+
+      // Temporary dance animation
+      let danceStep = 0;
+      const danceInterval = setInterval(() => {
+        danceStep++;
+
+        switch (danceStep % 6) {
+          case 0:
+            character.style.transform = "translateY(-10px) rotate(5deg)";
+            break;
+          case 1:
+            character.style.transform = "translateX(10px) rotate(-5deg)";
+            break;
+          case 2:
+            character.style.transform = "translateY(10px) rotate(5deg)";
+            break;
+          case 3:
+            character.style.transform = "translateX(-10px) rotate(-5deg)";
+            break;
+          case 4:
+            character.style.transform = "scale(1.1, 0.9) rotate(3deg)";
+            break;
+          case 5:
+            character.style.transform = "scale(0.9, 1.1) rotate(-3deg)";
+            break;
+        }
+
+        // Cycle through expressions while dancing
+        if (danceStep % 2 === 0) {
+          const danceExpressions = ["excited", "happy", "bouncy"];
+          const randomExpression =
+            danceExpressions[
+              Math.floor(Math.random() * danceExpressions.length)
+            ];
+          setExpression(randomExpression);
+        }
+
+        // Stop dancing after 10 steps
+        if (danceStep >= 12) {
+          clearInterval(danceInterval);
+          character.style.transform = "";
+          setExpression("happy");
+          speak("That was fun!");
+        }
+      }, 300);
+    }
+
+    // 'P' key - Take a photo/snapshot pose
+    if (e.code === "KeyP") {
+      speak("Cheese! 📸");
+      setExpression("surprised");
+
+      // Flash effect for taking photo
+      const flash = document.createElement("div");
+      Object.assign(flash.style, {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%",
+        backgroundColor: "white",
+        opacity: "0",
+        transition: "opacity 0.1s ease",
+        zIndex: "9998", // Below the blob
+        pointerEvents: "none",
+      });
+
+      document.body.appendChild(flash);
+
+      // Flash animation
+      setTimeout(() => {
+        flash.style.opacity = "0.7";
+        setTimeout(() => {
+          flash.style.opacity = "0";
+          setTimeout(() => {
+            document.body.removeChild(flash);
+            setExpression("happy");
+          }, 300);
+        }, 100);
+      }, 300);
+    }
+  });
+
+  // Magic Sequence - Konami Code Easter Egg (up, up, down, down, left, right, left, right, b, a)
+  let konamiSequence = [
+    "ArrowUp",
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowLeft",
+    "ArrowRight",
+    "KeyB",
+    "KeyA",
+  ];
+  let konamiIndex = 0;
+
+  document.addEventListener("keydown", function (e) {
+    // Check if the key matches the next in the sequence
+    if (e.code === konamiSequence[konamiIndex]) {
+      konamiIndex++;
+
+      // If the full sequence is matched
+      if (konamiIndex === konamiSequence.length) {
+        // Reset index
+        konamiIndex = 0;
+
+        // Activate rainbow mode!
+        speak("RAINBOW MODE ACTIVATED! 🌈");
+
+        // Start color cycling
+        let rainbowIndex = 0;
+        const rainbowColors = [
+          "radial-gradient(circle at 30% 25%, #ff9aa2, #ff6b8a, #ff5177)", // Red
+          "radial-gradient(circle at 30% 25%, #ffb347, #ff9021, #ff7b00)", // Orange
+          "radial-gradient(circle at 30% 25%, #fdfd96, #fdfd54, #fdfd00)", // Yellow
+          "radial-gradient(circle at 30% 25%, #a8e6cf, #7fdfc2, #4cd3ac)", // Green
+          "radial-gradient(circle at 30% 25%, #a0d8ff, #77c0ff, #54acff)", // Blue
+          "radial-gradient(circle at 30% 25%, #d8a0ff, #c277ff, #ac54ff)", // Purple
+        ];
+
+        const rainbowInterval = setInterval(() => {
+          rainbowIndex = (rainbowIndex + 1) % rainbowColors.length;
+          character.style.background = rainbowColors[rainbowIndex];
+
+          // End rainbow mode after cycling through colors a few times
+          if (rainbowIndex === 0) {
+            clearInterval(rainbowInterval);
+            character.style.background = colorSchemes[currentExpression];
+            speak("Rainbow mode deactivated. That was colorful!");
+          }
+        }, 500);
+      }
+    } else {
+      // Reset sequence on wrong key
+      konamiIndex = 0;
+    }
+  });
+
+  // Special reaction to portfolio owner's name
+  document.addEventListener("mouseover", function (e) {
+    // Check if the element or its children contain the portfolio owner's name
+    const targetText = e.target.textContent;
+    if (targetText && !isSpeaking) {
+      // Check for variations of the name
+      if (
+        targetText.includes("Jaya Prakash") ||
+        targetText.includes("Jaya P.") ||
+        targetText.includes("JP") ||
+        targetText.includes("Pinninti")
+      ) {
+        // Don't react too often - only 30% chance when hovering over name
+        if (Math.random() < 0.3) {
+          const ownerMessages = [
+            "That's my creator!",
+            "Jaya Prakash is awesome!",
+            "I was created by JP!",
+            "That's the portfolio owner!",
+            "My maker is talented, right?",
+          ];
+          const randomMessage =
+            ownerMessages[Math.floor(Math.random() * ownerMessages.length)];
+          speak(randomMessage);
+
+          // Show a heart animation
+          if (Math.random() < 0.5) {
+            const heart = document.createElement("div");
+            heart.textContent = "❤️";
+            Object.assign(heart.style, {
+              position: "absolute",
+              fontSize: "24px",
+              top: "20px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              opacity: "0",
+              transition: "all 1.5s ease",
+              zIndex: "10000",
+            });
+
+            character.appendChild(heart);
+
+            // Animate heart floating up
+            setTimeout(() => {
+              heart.style.opacity = "1";
+              heart.style.transform = "translateX(-50%) translateY(-40px)";
+
+              // Remove heart after animation
+              setTimeout(() => {
+                character.removeChild(heart);
+              }, 1500);
+            }, 10);
+          }
+        }
+      }
+    }
+  });
+
   console.log("Floating blob with expressions initialized");
 });
