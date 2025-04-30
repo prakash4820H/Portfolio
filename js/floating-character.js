@@ -1473,13 +1473,18 @@ document.addEventListener("DOMContentLoaded", function () {
       const originalWidth = character.style.width;
       const originalHeight = character.style.height;
 
+      // Store original dimensions in pixel values
+      const originalWidthValue = parseInt(originalWidth) || 130;
+      const originalHeightValue = parseInt(originalHeight) || 130;
+
       character.style.width = "160px";
       character.style.height = "160px";
       speak("I'm getting bigger!");
 
       setTimeout(() => {
-        character.style.width = originalWidth;
-        character.style.height = originalHeight;
+        // Ensure we restore to specific pixel values
+        character.style.width = originalWidthValue + "px";
+        character.style.height = originalHeightValue + "px";
       }, 2000);
     }
 
@@ -1638,6 +1643,29 @@ document.addEventListener("DOMContentLoaded", function () {
           }, 300);
         }, 100);
       }, 300);
+    }
+
+    // 'R' key - Reset blob size and appearance if it gets stuck
+    if (e.code === "KeyR") {
+      // Reset to default dimensions
+      character.style.width = "130px";
+      character.style.height = "130px";
+      character.style.transform = "";
+
+      // Reset appearance
+      setExpression("happy");
+      speak("Back to normal!");
+
+      // Clear any ongoing animations or timers
+      clearTimeout(speechTimer);
+
+      // Remove any added elements (like z's or hearts)
+      const elementsToRemove = character.querySelectorAll(
+        "div:not(.blob-face):not(.blob-eye):not(.blob-pupil):not(.eye-shine):not(.blob-mouth):not(.blob-cheek):not(.blob-eyebrow):not(.eyes-container):not(.mouth-container):not(.blob-speech-bubble)"
+      );
+      elementsToRemove.forEach((el) => {
+        character.removeChild(el);
+      });
     }
   });
 
