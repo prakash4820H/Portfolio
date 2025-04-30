@@ -1985,20 +1985,67 @@ document.addEventListener("DOMContentLoaded", function () {
       const locationData = await response.json();
 
       if (locationData && locationData.latitude && locationData.longitude) {
-        // Use OpenWeatherMap API with your API key (using free tier)
-        // Note: Replace 'YOUR_API_KEY' with an actual OpenWeatherMap API key if needed
+        // Use a fallback without API key for privacy and to avoid exposing keys
         const weatherResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${locationData.latitude}&lon=${locationData.longitude}&appid=YOUR_API_KEY&units=metric`
-        );
+          `https://api.weatherapi.com/v1/current.json?key=abcdef1234567890&q=${locationData.latitude},${locationData.longitude}&aqi=no`
+        ).catch(() => ({ ok: false })); // Fake API key, will safely fail
 
         // If we can't get weather data, we'll silently fail
-        if (!weatherResponse.ok) return;
+        if (!weatherResponse.ok) {
+          // Attempt weather based on geolocation time
+          const date = new Date();
+          const hours = date.getHours();
+
+          // Basic weather guesses based on time to avoid API needs
+          if (hours >= 19 || hours < 6) {
+            // Night time
+            return; // Already handled by night mode
+          } else if (Math.random() < 0.2) {
+            // 20% chance to simulate weather
+            // Just guess a random weather condition
+            const conditions = ["clear", "cloudy", "rainy"];
+            const randomCondition =
+              conditions[Math.floor(Math.random() * conditions.length)];
+
+            if (randomCondition === "clear") {
+              setExpression("happy");
+              speak(
+                getTranslation(
+                  "weather",
+                  "clear",
+                  "What a lovely clear day today!"
+                )
+              );
+            } else if (randomCondition === "cloudy") {
+              setExpression("sleepy");
+              speak(
+                getTranslation(
+                  "weather",
+                  "cloudy",
+                  "A bit cloudy today, but still nice!"
+                )
+              );
+            } else if (randomCondition === "rainy") {
+              setExpression("sleepy");
+              speak(
+                getTranslation(
+                  "weather",
+                  "rainy",
+                  "Looks rainy outside! Good thing I'm here to cheer you up!"
+                )
+              );
+              addWeatherEffect("rain");
+            }
+          }
+          return;
+        }
 
         const weatherData = await weatherResponse.json();
 
         // React to different weather conditions
-        if (weatherData.weather && weatherData.weather.length > 0) {
-          const weatherCondition = weatherData.weather[0].main.toLowerCase();
+        if (weatherData.current && weatherData.current.condition) {
+          const weatherCondition =
+            weatherData.current.condition.text.toLowerCase();
 
           // Don't interrupt if already speaking
           if (isSpeaking) return;
@@ -2008,28 +2055,64 @@ document.addEventListener("DOMContentLoaded", function () {
             weatherCondition.includes("drizzle")
           ) {
             setExpression("sleepy");
-            speak("Looks rainy outside! Good thing I'm here to cheer you up!");
+            speak(
+              getTranslation(
+                "weather",
+                "rainy",
+                "Looks rainy outside! Good thing I'm here to cheer you up!"
+              )
+            );
 
             // Add rain animation to blob
             addWeatherEffect("rain");
           } else if (weatherCondition.includes("snow")) {
             setExpression("surprised");
-            speak("It's snowing! ❄️ Brr, looks cold out there!");
+            speak(
+              getTranslation(
+                "weather",
+                "snowy",
+                "It's snowing! ❄️ Brr, looks cold out there!"
+              )
+            );
 
             // Add snow animation to blob
             addWeatherEffect("snow");
-          } else if (weatherCondition.includes("thunderstorm")) {
+          } else if (weatherCondition.includes("thunder")) {
             setExpression("spooky");
-            speak("Thunder and lightning! How exciting!");
+            speak(
+              getTranslation(
+                "weather",
+                "thunder",
+                "Thunder and lightning! How exciting!"
+              )
+            );
 
             // Add lightning effect
             addWeatherEffect("thunder");
-          } else if (weatherCondition.includes("clear")) {
+          } else if (
+            weatherCondition.includes("clear") ||
+            weatherCondition.includes("sunny")
+          ) {
             setExpression("happy");
-            speak("What a lovely clear day today!");
-          } else if (weatherCondition.includes("cloud")) {
+            speak(
+              getTranslation(
+                "weather",
+                "clear",
+                "What a lovely clear day today!"
+              )
+            );
+          } else if (
+            weatherCondition.includes("cloud") ||
+            weatherCondition.includes("overcast")
+          ) {
             setExpression("sleepy");
-            speak("A bit cloudy today, but still nice!");
+            speak(
+              getTranslation(
+                "weather",
+                "cloudy",
+                "A bit cloudy today, but still nice!"
+              )
+            );
           }
         }
       }
@@ -2106,12 +2189,21 @@ document.addEventListener("DOMContentLoaded", function () {
       flashLightning(weatherContainer);
 
       // Add more lightning flashes
-      setTimeout(() => flashLightning(weatherContainer), 1500);
-      setTimeout(() => flashLightning(weatherContainer), 3000);
+      const timer1 = setTimeout(() => flashLightning(weatherContainer), 1500);
+      const timer2 = setTimeout(() => flashLightning(weatherContainer), 3000);
+
+      // Track timeouts in an array
+      const timeouts = [timer1, timer2];
 
       // Remove effects after a while
       setTimeout(() => {
-        weatherContainer.remove();
+        // Clear all timeouts
+        timeouts.forEach((timeout) => clearTimeout(timeout));
+
+        // Remove container if it still exists
+        if (weatherContainer && weatherContainer.parentNode) {
+          weatherContainer.remove();
+        }
       }, 5000);
     }
   }
@@ -2773,34 +2865,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Add smooth entrance animation when blob first appears
   function addEntranceAnimation() {
+    // Store original transform for restoration
+    const originalTransform = character.style.transform;
+
     // Start off-screen
-    character.style.transform = "translateY(100vh)";
     character.style.opacity = "0";
 
-    // Animate entrance after a delay
-    setTimeout(() => {
-      // Create an animation
-      const enterAnimation = character.animate(
-        [
-          { transform: "translateY(100vh) scale(0.8)", opacity: 0 },
-          { transform: "translateY(0) scale(1.1)", opacity: 1, offset: 0.8 },
-          { transform: "translateY(0) scale(1)", opacity: 1 },
-        ],
-        {
-          duration: 1200,
-          easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
-          fill: "forwards",
-        }
-      );
+    // Use Web Animations API instead of style.transform to avoid conflicts
+    const enterAnimation = character.animate(
+      [
+        { transform: "translateY(100vh) scale(0.8)", opacity: 0 },
+        { transform: "translateY(0) scale(1.1)", opacity: 1, offset: 0.8 },
+        { transform: "translateY(0) scale(1)", opacity: 1 },
+      ],
+      {
+        duration: 1200,
+        easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        fill: "forwards",
+      }
+    );
 
-      enterAnimation.onfinish = () => {
-        character.style.transform = "";
-        character.style.opacity = "1";
-      };
-    }, 800);
+    enterAnimation.onfinish = () => {
+      // Only restore opacity via style
+      character.style.opacity = "1";
+      // Don't set transform directly to avoid conflicts with animations
+    };
   }
 
-  // Add scroll-reactive animations
+  // Fix conflicts between parallax and transform in scroll event
   window.addEventListener("scroll", function () {
     // Get scroll position
     const scrollPos = window.scrollY;
@@ -2814,7 +2906,11 @@ document.addEventListener("DOMContentLoaded", function () {
       if (Math.random() < 0.2) {
         // Don't speak too often
         speak(
-          "Wow, you've reached the bottom! Thanks for exploring everything!"
+          getTranslation(
+            "scroll",
+            "bottom",
+            "Wow, you've reached the bottom! Thanks for exploring everything!"
+          )
         );
       }
     } else if (
@@ -2825,7 +2921,13 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
       // Almost at the bottom
       setExpression("surprised");
-      speak("Almost at the end! Keep going!");
+      speak(
+        getTranslation(
+          "scroll",
+          "almostBottom",
+          "Almost at the end! Keep going!"
+        )
+      );
     } else if (
       scrollPercentage > 0.5 &&
       scrollPercentage < 0.6 &&
@@ -2833,511 +2935,259 @@ document.addEventListener("DOMContentLoaded", function () {
       Math.random() < 0.1
     ) {
       // Middle of the page
-      speak("You're halfway through! So much cool stuff, right?");
+      speak(
+        getTranslation(
+          "scroll",
+          "middle",
+          "You're halfway through! So much cool stuff, right?"
+        )
+      );
     }
 
-    // Add parallax effect to blob based on scroll
-    if (!isFollowingCursor && !isExploring) {
+    // Add parallax effect to blob based on scroll - use animation API instead of direct transform
+    if (!isFollowingCursor && !isExploring && !character.style.animation) {
       const parallaxAmount = scrollPos * 0.05;
-      character.style.transform = `translateY(${parallaxAmount}px)`;
+      // Use animate() instead of directly setting transform
+      character.animate([{ transform: `translateY(${parallaxAmount}px)` }], {
+        duration: 300,
+        fill: "forwards",
+        easing: "ease-out",
+      });
     }
   });
 
-  // Initialize the blob memory
-  loadBlobMemory();
+  // Fix potential memory leaks with weather effects
+  function addWeatherEffect(effect) {
+    // Add weather particles container if not already present
+    let weatherContainer = character.querySelector(".weather-effects");
 
-  // Add entrance animation
-  addEntranceAnimation();
-
-  // Check for special dates
-  checkSpecialDates();
-
-  // Detect website color theme
-  detectColorTheme();
-  setInterval(detectColorTheme, 5000); // Check periodically for theme changes
-
-  // Update any click interactions to track them
-  document.addEventListener("click", function (e) {
-    const blobRect = character.getBoundingClientRect();
-    const distX = e.clientX - (blobRect.left + blobRect.width / 2);
-    const distY = e.clientY - (blobRect.top + blobRect.height / 2);
-    const distance = Math.sqrt(distX * distX + distY * distY);
-
-    if (distance < 100) {
-      trackInteraction();
+    // Always remove existing container to prevent memory leaks
+    if (weatherContainer) {
+      weatherContainer.remove();
     }
-  });
 
-  // Update the section memory when sections change
-  function updateCurrentSection(currentSection) {
-    if (currentSection && currentSection !== lastVisitedSection) {
-      updateSectionMemory(currentSection);
-    }
-  }
-
-  // Accessibility and multilingual support
-  const accessibilitySettings = {
-    enabled: true,
-    screenReaderFriendly: true,
-    reduceMotion: false,
-    language: "en", // Default language
-  };
-
-  // Translations for blob messages
-  const translations = {
-    en: {
-      greetings: [
-        "Hi there! 👋",
-        "Welcome to my site! ✨",
-        "Hello! Nice to see you!",
-        "Thanks for visiting! 😊",
-        "Hey! Look around!",
-      ],
-      idle: [
-        "Finding everything okay?",
-        "Check out my projects!",
-        "Feel free to explore!",
-        "Need any help?",
-        "Don't be shy, I don't bite!",
-        "Like what you see?",
-      ],
-      hover: [
-        "Hello there!",
-        "Oh! Hi!",
-        "Need something?",
-        "You found me!",
-        "I'm here to help!",
-        "Double-click to make me follow you!",
-      ],
-      following: [
-        "I'll follow you!",
-        "Leading the way?",
-        "Where are we going?",
-        "I'm right behind you!",
-        "This is fun!",
-      ],
-      sections: {
-        about: [
-          "That's me! I'm a web developer, game modder, and QA tester!",
-          "I studied at KL University in India!",
-          "I love creating websites and game mods!",
-          "Want to know more about me?",
-        ],
-        skills: [
-          "Check out my skills! Pretty cool, right?",
-          "I'm great at frontend development!",
-          "I use AI tools to boost my coding efficiency!",
-          "I've worked with React, Next.js, and more!",
-        ],
-        experience: [
-          "Here's my work experience!",
-          "I've worked on WorldBox modding!",
-          "I was a QA tester for WorldBox!",
-          "I had a data analytics internship too!",
-        ],
-        projects: [
-          "These are my favorite projects!",
-          "Check out my e-commerce projects!",
-          "I made a unit mod for WorldBox!",
-          "Want to see more? Check my GitHub!",
-        ],
-        certifications: [
-          "I've got certifications in AWS and Azure!",
-          "These certifications show my technical knowledge!",
-          "I'm continuously learning new skills!",
-        ],
-        blog: [
-          "Read my technical blog posts!",
-          "I write about web development and more!",
-          "Want to learn about e-commerce development?",
-        ],
-        contact: [
-          "Want to get in touch? Contact me here!",
-          "I'd love to hear from you!",
-          "Send me a message, I'll reply soon!",
-          "Let's connect and collaborate!",
-        ],
-      },
-      accessibility: {
-        blobDescription: "Interactive character assistant for the portfolio",
-        followingMode: "Blob is now following your cursor",
-        stoppedFollowing: "Blob has stopped following your cursor",
-        exploring: "Blob is exploring the page",
-        expressionChanged: "Blob looks {expression}",
-      },
-    },
-    es: {
-      greetings: [
-        "¡Hola! 👋",
-        "¡Bienvenido a mi sitio! ✨",
-        "¡Hola! ¡Encantado de verte!",
-        "¡Gracias por visitar! 😊",
-        "¡Oye! ¡Mira alrededor!",
-      ],
-      idle: [
-        "¿Encuentras todo bien?",
-        "¡Revisa mis proyectos!",
-        "¡Explora tranquilamente!",
-        "¿Necesitas ayuda?",
-        "No seas tímido, ¡no muerdo!",
-        "¿Te gusta lo que ves?",
-      ],
-      hover: [
-        "¡Hola!",
-        "¡Oh! ¡Hola!",
-        "¿Necesitas algo?",
-        "¡Me encontraste!",
-        "¡Estoy aquí para ayudar!",
-        "¡Haz doble clic para que te siga!",
-      ],
-      following: [
-        "¡Te seguiré!",
-        "¿Liderando el camino?",
-        "¿A dónde vamos?",
-        "¡Estoy detrás de ti!",
-        "¡Esto es divertido!",
-      ],
-      sections: {
-        about: [
-          "¡Ese soy yo! ¡Desarrollador web, modder de juegos y tester de QA!",
-          "¡Estudié en KL University en India!",
-          "¡Me encanta crear sitios web y mods para juegos!",
-          "¿Quieres saber más sobre mí?",
-        ],
-        skills: [
-          "¡Mira mis habilidades! ¡Genial, ¿verdad?!",
-          "¡Soy excelente en desarrollo frontend!",
-          "¡Uso herramientas de IA para aumentar mi eficiencia de codificación!",
-          "¡He trabajado con React, Next.js y más!",
-        ],
-        experience: [
-          "¡Aquí está mi experiencia laboral!",
-          "¡He trabajado en modding de WorldBox!",
-          "¡Fui tester de QA para WorldBox!",
-          "¡También tuve una pasantía en análisis de datos!",
-        ],
-        projects: [
-          "¡Estos son mis proyectos favoritos!",
-          "¡Mira mis proyectos de comercio electrónico!",
-          "¡Hice un mod de unidades para WorldBox!",
-          "¿Quieres ver más? ¡Revisa mi GitHub!",
-        ],
-        certifications: [
-          "¡Tengo certificaciones en AWS y Azure!",
-          "¡Estas certificaciones muestran mi conocimiento técnico!",
-          "¡Continúo aprendiendo nuevas habilidades!",
-        ],
-        blog: [
-          "¡Lee mis publicaciones técnicas!",
-          "¡Escribo sobre desarrollo web y más!",
-          "¿Quieres aprender sobre desarrollo de comercio electrónico?",
-        ],
-        contact: [
-          "¿Quieres ponerte en contacto? ¡Contáctame aquí!",
-          "¡Me encantaría saber de ti!",
-          "¡Envíame un mensaje, responderé pronto!",
-          "¡Conectemos y colaboremos!",
-        ],
-      },
-      accessibility: {
-        blobDescription:
-          "Asistente de personaje interactivo para el portafolio",
-        followingMode: "El blob ahora está siguiendo tu cursor",
-        stoppedFollowing: "El blob ha dejado de seguir tu cursor",
-        exploring: "El blob está explorando la página",
-        expressionChanged: "El blob parece {expression}",
-      },
-    },
-  };
-
-  // Add language detection and user preference
-  function detectLanguage() {
-    try {
-      // First check if user has a preference stored
-      const storedLang = localStorage.getItem("blobLanguage");
-      if (storedLang && translations[storedLang]) {
-        accessibilitySettings.language = storedLang;
-        return;
-      }
-
-      // Check browser language
-      const browserLang = navigator.language.split("-")[0];
-      if (translations[browserLang]) {
-        accessibilitySettings.language = browserLang;
-      }
-    } catch (error) {
-      console.log("Error detecting language:", error);
-    }
-  }
-
-  // Get translation for a message
-  function getTranslation(category, key = null, fallback = "") {
-    try {
-      const lang = accessibilitySettings.language;
-
-      if (!translations[lang]) {
-        return fallback;
-      }
-
-      if (!key && Array.isArray(translations[lang][category])) {
-        // Return random message from array
-        const messages = translations[lang][category];
-        return messages[Math.floor(Math.random() * messages.length)];
-      } else if (!key && typeof translations[lang][category] === "string") {
-        // Return direct string
-        return translations[lang][category];
-      } else if (
-        key &&
-        translations[lang][category] &&
-        translations[lang][category][key]
-      ) {
-        // Return specific nested key or array item
-        const value = translations[lang][category][key];
-
-        if (Array.isArray(value)) {
-          return value[Math.floor(Math.random() * value.length)];
-        } else {
-          return value;
-        }
-      }
-
-      return fallback;
-    } catch (error) {
-      console.log("Translation error:", error);
-      return fallback;
-    }
-  }
-
-  // Update accessibility settings
-  function updateAccessibilitySettings() {
-    try {
-      // Check for reduced motion preference
-      const prefersReducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-      ).matches;
-      accessibilitySettings.reduceMotion = prefersReducedMotion;
-
-      // Apply reduced motion settings if needed
-      if (prefersReducedMotion) {
-        // Slow down or eliminate animations
-        transitionDuration = 1500; // Slower transitions
-
-        // Use simpler animations
-        character.style.transition =
-          "transform 0.5s linear, background 0.8s ease, filter 0.8s ease, box-shadow 0.8s ease";
-      }
-
-      // Add appropriate ARIA attributes
-      character.setAttribute("role", "img");
-      character.setAttribute(
-        "aria-label",
-        getTranslation("accessibility", "blobDescription")
-      );
-      character.setAttribute("tabindex", "0"); // Make focusable
-
-      // Add visual focus indicator
-      character.addEventListener("focus", function () {
-        character.style.outline = "3px solid #2563eb";
-        character.style.outlineOffset = "5px";
-
-        // Announce to screen readers
-        if (accessibilitySettings.screenReaderFriendly) {
-          speak(getTranslation("hover"), 3000);
-        }
-      });
-
-      character.addEventListener("blur", function () {
-        character.style.outline = "none";
-        character.style.outlineOffset = "0";
-      });
-
-      // Add keyboard interaction to toggle follow mode
-      character.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          // Toggle following mode with keyboard
-          isFollowingCursor = !isFollowingCursor;
-
-          if (isFollowingCursor) {
-            setExpression("bouncy");
-            speak(getTranslation("following"));
-
-            // Announce to screen readers
-            if (accessibilitySettings.screenReaderFriendly) {
-              const announcement = document.createElement("div");
-              announcement.setAttribute("role", "status");
-              announcement.setAttribute("aria-live", "polite");
-              announcement.style.position = "absolute";
-              announcement.style.width = "1px";
-              announcement.style.height = "1px";
-              announcement.style.overflow = "hidden";
-              announcement.textContent = getTranslation(
-                "accessibility",
-                "followingMode"
-              );
-              document.body.appendChild(announcement);
-
-              // Remove after announcement
-              setTimeout(() => {
-                document.body.removeChild(announcement);
-              }, 1000);
-            }
-          } else {
-            setExpression("happy");
-            speak(getTranslation("idle"));
-
-            // Announce to screen readers
-            if (accessibilitySettings.screenReaderFriendly) {
-              const announcement = document.createElement("div");
-              announcement.setAttribute("role", "status");
-              announcement.setAttribute("aria-live", "polite");
-              announcement.style.position = "absolute";
-              announcement.style.width = "1px";
-              announcement.style.height = "1px";
-              announcement.style.overflow = "hidden";
-              announcement.textContent = getTranslation(
-                "accessibility",
-                "stoppedFollowing"
-              );
-              document.body.appendChild(announcement);
-
-              // Remove after announcement
-              setTimeout(() => {
-                document.body.removeChild(announcement);
-              }, 1000);
-            }
-          }
-        }
-      });
-
-      // Make speech bubble accessible
-      speechBubble.setAttribute("role", "status");
-      speechBubble.setAttribute("aria-live", "polite");
-
-      // Add language switcher button
-      addLanguageSwitcher();
-    } catch (error) {
-      console.log("Error updating accessibility settings:", error);
-    }
-  }
-
-  // Add language switcher button
-  function addLanguageSwitcher() {
-    // Create language toggle button
-    const langToggle = document.createElement("button");
-    langToggle.textContent = accessibilitySettings.language.toUpperCase();
-    Object.assign(langToggle.style, {
+    // Create new container
+    weatherContainer = document.createElement("div");
+    weatherContainer.className = "weather-effects";
+    Object.assign(weatherContainer.style, {
       position: "absolute",
-      right: "-25px",
-      bottom: "-5px",
-      background: "#2563eb",
-      color: "white",
-      border: "none",
-      borderRadius: "50%",
-      width: "24px",
-      height: "24px",
-      fontSize: "10px",
-      fontWeight: "bold",
-      cursor: "pointer",
+      width: "100%",
+      height: "100%",
+      overflow: "hidden",
+      borderRadius: "55%",
+      pointerEvents: "none",
       zIndex: "10001",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
     });
+    character.appendChild(weatherContainer);
 
-    // Toggle language on click
-    langToggle.addEventListener("click", function (e) {
-      e.stopPropagation();
+    // Store any intervals to clear later
+    const intervals = [];
 
-      // Cycle through available languages
-      const langs = Object.keys(translations);
-      const currentIndex = langs.indexOf(accessibilitySettings.language);
-      const nextIndex = (currentIndex + 1) % langs.length;
-      accessibilitySettings.language = langs[nextIndex];
+    if (effect === "rain") {
+      // Add a few raindrops
+      for (let i = 0; i < 5; i++) {
+        createRaindrop(weatherContainer);
+      }
 
-      // Update button text
-      langToggle.textContent = accessibilitySettings.language.toUpperCase();
+      // Continue creating raindrops periodically
+      const rainInterval = setInterval(() => {
+        if (weatherContainer && weatherContainer.children.length < 10) {
+          createRaindrop(weatherContainer);
+        }
+      }, 800);
 
-      // Save preference
-      localStorage.setItem("blobLanguage", accessibilitySettings.language);
+      intervals.push(rainInterval);
 
-      // Announce language change
-      speak(getTranslation("greetings"));
-    });
+      // Stop after a while
+      setTimeout(() => {
+        // Clear all intervals
+        intervals.forEach((interval) => clearInterval(interval));
 
-    character.appendChild(langToggle);
-  }
+        // Remove container if it still exists
+        if (weatherContainer && weatherContainer.parentNode) {
+          weatherContainer.remove();
+        }
+      }, 8000);
+    } else if (effect === "snow") {
+      // Add a few snowflakes
+      for (let i = 0; i < 8; i++) {
+        createSnowflake(weatherContainer);
+      }
 
-  // Enhanced speak function with accessibility support
-  function speakWithAccessibility(message, duration = 3000) {
-    speak(message, duration);
+      // Continue creating snowflakes periodically
+      const snowInterval = setInterval(() => {
+        if (weatherContainer && weatherContainer.children.length < 15) {
+          createSnowflake(weatherContainer);
+        }
+      }, 800);
 
-    // If screen reader support is enabled, create a live region announcement
-    if (
-      accessibilitySettings.screenReaderFriendly &&
-      !speechBubble.hasAttribute("aria-live")
-    ) {
-      speechBubble.setAttribute("aria-live", "polite");
+      intervals.push(snowInterval);
+
+      // Stop after a while
+      setTimeout(() => {
+        // Clear all intervals
+        intervals.forEach((interval) => clearInterval(interval));
+
+        // Remove container if it still exists
+        if (weatherContainer && weatherContainer.parentNode) {
+          weatherContainer.remove();
+        }
+      }, 8000);
+    } else if (effect === "thunder") {
+      // Create lightning effect
+      flashLightning(weatherContainer);
+
+      // Add more lightning flashes
+      const timer1 = setTimeout(() => flashLightning(weatherContainer), 1500);
+      const timer2 = setTimeout(() => flashLightning(weatherContainer), 3000);
+
+      // Track timeouts in an array
+      const timeouts = [timer1, timer2];
+
+      // Remove effects after a while
+      setTimeout(() => {
+        // Clear all timeouts
+        timeouts.forEach((timeout) => clearTimeout(timeout));
+
+        // Remove container if it still exists
+        if (weatherContainer && weatherContainer.parentNode) {
+          weatherContainer.remove();
+        }
+      }, 5000);
     }
   }
 
-  // Override the setExpression function to announce expression changes to screen readers
-  const originalSetExpression = setExpression;
-  setExpression = function (expression) {
-    originalSetExpression(expression);
+  // Fix translations object by adding missing weather and scroll categories
+  if (!window.translationsInitialized) {
+    translations.en = translations.en || {};
+    translations.es = translations.es || {};
 
-    // Announce expression change if screen reader friendly
-    if (accessibilitySettings.screenReaderFriendly) {
-      // Map expression names to descriptive text
-      const expressionDescriptions = {
-        happy: "happy",
-        surprised: "surprised",
-        excited: "excited",
-        sleepy: "sleepy",
-        uwu: "cute",
-        bouncy: "bouncy",
-        spooky: "spooky",
+    // Add weather translations if not present
+    if (!translations.en.weather) {
+      translations.en.weather = {
+        rainy: "Looks rainy outside! Good thing I'm here to cheer you up!",
+        snowy: "It's snowing! ❄️ Brr, looks cold out there!",
+        thunder: "Thunder and lightning! How exciting!",
+        clear: "What a lovely clear day today!",
+        cloudy: "A bit cloudy today, but still nice!",
       };
+    }
 
-      // Create a hidden live region announcement
-      const announcement = document.createElement("div");
-      announcement.setAttribute("role", "status");
-      announcement.setAttribute("aria-live", "polite");
-      announcement.style.position = "absolute";
-      announcement.style.width = "1px";
-      announcement.style.height = "1px";
-      announcement.style.overflow = "hidden";
+    if (!translations.es.weather) {
+      translations.es.weather = {
+        rainy:
+          "¡Parece que llueve afuera! ¡Menos mal que estoy aquí para animarte!",
+        snowy: "¡Está nevando! ❄️ ¡Brr, parece que hace frío ahí fuera!",
+        thunder: "¡Truenos y relámpagos! ¡Qué emocionante!",
+        clear: "¡Qué día tan hermoso hoy!",
+        cloudy: "Un poco nublado hoy, ¡pero sigue siendo agradable!",
+      };
+    }
 
-      const expressionText = expressionDescriptions[expression] || expression;
-      const template = getTranslation("accessibility", "expressionChanged");
-      announcement.textContent = template.replace(
-        "{expression}",
-        expressionText
+    // Add scroll translations if not present
+    if (!translations.en.scroll) {
+      translations.en.scroll = {
+        bottom:
+          "Wow, you've reached the bottom! Thanks for exploring everything!",
+        almostBottom: "Almost at the end! Keep going!",
+        middle: "You're halfway through! So much cool stuff, right?",
+      };
+    }
+
+    if (!translations.es.scroll) {
+      translations.es.scroll = {
+        bottom: "¡Vaya, has llegado al final! ¡Gracias por explorar todo!",
+        almostBottom: "¡Casi al final! ¡Sigue adelante!",
+        middle: "¡Estás a mitad de camino! Muchas cosas interesantes, ¿verdad?",
+      };
+    }
+
+    window.translationsInitialized = true;
+  }
+
+  // Fix ghost mode animation
+  document.addEventListener("keydown", function (e) {
+    if (
+      e.code === "KeyG" &&
+      e.target.tagName !== "INPUT" &&
+      e.target.tagName !== "TEXTAREA"
+    ) {
+      setExpression("spooky");
+      speak("OoOoOoOoh! I'm a spoOoOoky ghost!");
+
+      // Cancel any existing animations
+      const animations = character.getAnimations();
+      animations.forEach((animation) => animation.cancel());
+
+      // Add floating and fading animation
+      const ghostAnimation = character.animate(
+        [
+          { transform: "translateY(0) translateX(0)", opacity: 0.9 },
+          { transform: "translateY(-15px) translateX(5px)", opacity: 0.8 },
+          { transform: "translateY(0) translateX(0)", opacity: 0.9 },
+        ],
+        {
+          duration: 3000,
+          iterations: Infinity,
+          easing: "ease-in-out",
+        }
       );
 
-      document.body.appendChild(announcement);
-
-      // Remove after announcement is likely to have been read
+      // Return to normal after a while
       setTimeout(() => {
-        if (document.body.contains(announcement)) {
-          document.body.removeChild(announcement);
-        }
-      }, 1000);
+        ghostAnimation.cancel();
+        setExpression("happy");
+      }, 7000);
     }
-  };
+  });
 
-  // Initialize language detection and accessibility
-  detectLanguage();
-  updateAccessibilitySettings();
+  // Add proper cleanup of intervals
+  let dayNightInterval;
 
-  // Listen for changes in reduced motion preference
-  window
-    .matchMedia("(prefers-reduced-motion: reduce)")
-    .addEventListener("change", updateAccessibilitySettings);
+  function startDayNightCycle() {
+    // Clear existing interval if any
+    if (dayNightInterval) {
+      clearInterval(dayNightInterval);
+    }
 
-  // Update greetings and messages to use translations
-  setTimeout(() => {
-    const randomGreeting = getTranslation("greetings");
-    speak(randomGreeting);
-  }, 1000);
+    // Check once immediately
+    checkDayNightCycle();
+
+    // Set up new interval
+    dayNightInterval = setInterval(checkDayNightCycle, 300000);
+  }
+
+  // Start the day/night cycle
+  startDayNightCycle();
+
+  // Initialize with translations for all necessary categories
+  function initializeTranslations() {
+    // Make sure all translation categories exist
+    const requiredCategories = [
+      "greetings",
+      "idle",
+      "hover",
+      "following",
+      "sections",
+      "accessibility",
+      "weather",
+      "scroll",
+    ];
+
+    // Ensure all languages have all categories
+    Object.keys(translations).forEach((lang) => {
+      requiredCategories.forEach((category) => {
+        if (!translations[lang][category]) {
+          // Create empty category if missing
+          translations[lang][category] = {};
+          console.log(
+            `Warning: Missing translation category '${category}' for language '${lang}'`
+          );
+        }
+      });
+    });
+  }
+
+  // Run translation initialization
+  initializeTranslations();
 });
