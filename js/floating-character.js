@@ -235,9 +235,9 @@ document.addEventListener("DOMContentLoaded", function () {
     fontSize: "14px",
     fontWeight: "500",
     color: "#333",
-    top: "-85px",
-    left: "50%",
-    transform: "translateX(-50%)",
+    top: "30px", // Positioned to the right side
+    left: "140px", // Positioned to the right side
+    transform: "none", // Reset transform
     opacity: "0",
     transition: "opacity 0.3s ease, transform 0.2s ease",
     pointerEvents: "none",
@@ -251,12 +251,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const speechBubbleTail = document.createElement("div");
   Object.assign(speechBubbleTail.style, {
     position: "absolute",
-    bottom: "-11px",
-    left: "50%",
-    marginLeft: "-10px",
-    borderWidth: "10px 10px 0",
+    bottom: "50%", // Center vertically
+    left: "-10px", // Point to the left
+    marginLeft: "0",
+    marginBottom: "-10px",
+    borderWidth: "10px 10px 10px 0", // Point to the left
     borderStyle: "solid",
-    borderColor: "white transparent transparent",
+    borderColor: "transparent white transparent transparent", // Right side arrow
     filter: "drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1))",
     zIndex: "1",
   });
@@ -425,12 +426,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Update speech bubble
     speechBubble.textContent = message;
+
+    // Position the speech bubble based on blob's position on screen
+    positionSpeechBubble();
+
+    // Show the speech bubble
     speechBubble.style.opacity = "1";
 
-    // Match speech bubble border color to current mood
+    isSpeaking = true;
+
+    // Clear any existing timer
+    clearTimeout(speechTimer);
+
+    // Set timer to hide speech bubble
+    speechTimer = setTimeout(() => {
+      speechBubble.style.opacity = "0";
+      isSpeaking = false;
+    }, duration);
+  }
+
+  // Function to position the speech bubble based on blob position
+  function positionSpeechBubble() {
+    const blobRect = character.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+
+    // Determine border color based on current expression
     let borderColor = "#8de2d9"; // Default color
 
-    // Set border color based on current expression
     switch (currentExpression) {
       case "happy":
         borderColor = "#8de2d9";
@@ -452,18 +474,31 @@ document.addEventListener("DOMContentLoaded", function () {
         break; // Sky blue
     }
 
+    // If blob is near the right edge of the screen, put bubble on the left
+    if (blobRect.right > windowWidth - 250) {
+      speechBubble.style.left = "-230px";
+      speechBubble.style.top = "30px";
+      speechBubbleTail.style.left = "100%";
+      speechBubbleTail.style.right = "auto";
+      speechBubbleTail.style.bottom = "50%";
+      speechBubbleTail.style.marginBottom = "-10px";
+      speechBubbleTail.style.borderWidth = "10px 0 10px 10px";
+      speechBubbleTail.style.borderColor = `transparent transparent transparent ${borderColor}`;
+    }
+    // Default: put bubble on the right
+    else {
+      speechBubble.style.left = "140px";
+      speechBubble.style.top = "30px";
+      speechBubbleTail.style.left = "-10px";
+      speechBubbleTail.style.right = "auto";
+      speechBubbleTail.style.bottom = "50%";
+      speechBubbleTail.style.marginBottom = "-10px";
+      speechBubbleTail.style.borderWidth = "10px 10px 10px 0";
+      speechBubbleTail.style.borderColor = `transparent ${borderColor} transparent transparent`;
+    }
+
+    // Set speech bubble border color
     speechBubble.style.borderColor = borderColor;
-
-    isSpeaking = true;
-
-    // Clear any existing timer
-    clearTimeout(speechTimer);
-
-    // Set timer to hide speech bubble
-    speechTimer = setTimeout(() => {
-      speechBubble.style.opacity = "0";
-      isSpeaking = false;
-    }, duration);
   }
 
   // Function to set expression
